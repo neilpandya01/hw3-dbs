@@ -41,6 +41,12 @@ function Editor({ current, onClose }: { current: string; onClose: () => void }) 
   return (
     <form
       noValidate
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          onClose();
+        }
+      }}
       className="mt-2 flex flex-col gap-4 rounded-2xl border border-line bg-surface p-4"
       onSubmit={(e) => {
         e.preventDefault();

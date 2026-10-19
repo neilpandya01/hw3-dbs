@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { ButtonLink } from "@/components/Button";
+import { Button, ButtonLink } from "@/components/Button";
 import { DayTasks } from "@/components/DayTasks";
 import { FirstHint } from "@/components/FirstHint";
 import { FromEarlier } from "@/components/FromEarlier";
@@ -12,7 +12,7 @@ import { WrapUpCard } from "@/components/WrapUpCard";
 import { WrapUpSetting } from "@/components/WrapUpSetting";
 import { useClock } from "@/lib/clock";
 import { addDays, formatDay, minutesOf } from "@/lib/dates";
-import { doneOn, fromEarlier, isNewUser, tasksOn, useStore, wrapUpTime } from "@/lib/store";
+import { doneOn, fromEarlier, isNewUser, reopenWrapUp, tasksOn, useStore, wrapUpTime } from "@/lib/store";
 
 /** The home page: today's list, quick-add, what's carried over, and the evening wrap-up. */
 export function TodayView() {
@@ -41,6 +41,7 @@ export function TodayView() {
   // Right after onboarding, the first-task hint comes first; the wrap-up card can wait until it is dismissed.
   const showWrapUp =
     pastWrapUp && leftovers.length > 0 && data.wrapUpDismissedOn !== today && !data.showFirstHint;
+  const wrapUpHidden = pastWrapUp && leftovers.length > 0 && data.wrapUpDismissedOn === today;
   const wrapped = pastWrapUp && leftovers.length === 0 && doneToday > 0;
 
   return (
@@ -49,7 +50,14 @@ export function TodayView() {
         title={`Today · ${formatDay(today)}`}
         subtitle={wrapped ? `Day wrapped. ${doneToday} done today.` : doneToday ? `${doneToday} done today` : undefined}
       >
-        <WrapUpSetting data={data} />
+        <div className="flex flex-wrap items-center gap-x-2">
+          <WrapUpSetting data={data} />
+          {wrapUpHidden && (
+            <Button variant="ghost" size="sm" onClick={reopenWrapUp}>
+              Wrap up now
+            </Button>
+          )}
+        </div>
       </PageHeader>
 
       <FirstHint data={data} />

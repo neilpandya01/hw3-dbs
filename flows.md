@@ -135,5 +135,23 @@ flowchart TD
 | An empty first task | **"Enter a task name."** The day you picked is kept. |
 | A past date chosen with Pick a day | **"Pick today or a later day."** |
 
+## Human-error audit
+
+I went through every flow looking for mistakes a person could make, then checked that each one gets a clear response.
+
+| Mistake | What happens now |
+|---|---|
+| Typo in a task name, or a task added to the wrong day | Every task has **Edit**: rename it, change its day, or **Delete task**. Each one has Undo. Escape or Cancel closes without saving. |
+| Mistyped year (2062 instead of 2026) | A soft warning: **"Thu, Oct 19, 2062 is more than a year away. Check the year, or press the button again to keep it."** It appears in Add, Edit, onboarding, and Pick a day. |
+| Moving a task to the day it's already on | **"It's already on Thu, Oct 23. Pick a different day."** |
+| Editing a From earlier task's name only | It keeps its past day, so there's no false "Pick today or a later day" error. |
+| Pressing Enter twice after adding | The second Enter is ignored instead of showing "Enter a task name." |
+| Accidentally checking or unchecking a task | Undo. When you uncheck a task, the message says where it went: *"It's back under From earlier on Today."* |
+| Deleting one task | Undo stays up for 10 seconds instead of 6. It stays open while you hover over or focus it, and it can be dismissed with ✕. |
+| Deleting many at once (**Clear all**, **Clear finished tasks**) | It asks first, inline: **"Delete all 5? Yes, delete / Cancel."** Then it gives a 10-second Undo. |
+| Pressing **Not now** on the wrap-up by mistake | The message has Undo, and **Wrap up now** at the top of Today brings the card back. |
+| Skipping onboarding with a task typed but not added | **"'Call Mom' isn't saved yet. Press Add to my list to keep it, or I'll add tasks later again to skip it."** |
+| A morning wrap-up time (9 AM) | A soft warning. Pressing the button again keeps it. |
+
 ## Parked for later steps (not part of this answer)
 - **Coming back (Step 6):** the streak and the `/done` history. (The wrap-up time can already be changed from **Edit** at the top of Today.)

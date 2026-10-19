@@ -24,6 +24,7 @@ export function FirstTaskStep({
   const router = useRouter();
   const draft = useTaskDraft();
   const [day, setDay] = useState<{ choice: DayChoice; picked: string }>({ choice: "today", picked: "" });
+  const [skipWarned, setSkipWarned] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const date = resolveDay(day.choice, day.picked, today);
   const titleMessages = { error: draft.errors.title };
@@ -42,7 +43,7 @@ export function FirstTaskStep({
         className="flex flex-col gap-6 rounded-2xl border border-line bg-surface p-4"
         onSubmit={(e) => {
           e.preventDefault();
-          // A brand-new list has nothing to be similar to, so this only ever adds or shows errors.
+          // A brand-new list has nothing to be similar to, so pass no tasks.
           const result = draft.submit(date, today, []);
           if (result.id) {
             finishOnboarding({ addedTask: true });
@@ -93,14 +94,15 @@ export function FirstTaskStep({
           picked={day.picked}
           today={today}
           error={draft.errors.date}
+        warning={draft.dateWarning}
           hint="Nothing for today? Choose Tomorrow or pick another day."
           onChoice={(choice) => {
             setDay((d) => ({ ...d, choice }));
-            draft.setErrors((e) => ({ ...e, date: undefined }));
+            draft.changeDay();
           }}
           onPicked={(picked) => {
             setDay((d) => ({ ...d, picked }));
-            draft.setErrors((e) => ({ ...e, date: undefined }));
+            draft.changeDay();
           }}
         />
 
@@ -113,6 +115,8 @@ export function FirstTaskStep({
             variant="ghost"
             className="sm:ml-auto"
             onClick={() => {
+              // Don't silently throw away something they typed: say so once, then skip.
+              if (draft.title.trim() && !skipWarned) return setSkipWarned(true);
               finishOnboarding({ addedTask: false });
               router.push("/");
             }}
@@ -120,6 +124,12 @@ export function FirstTaskStep({
             I&rsquo;ll add tasks later
           </Button>
         </div>
+        {skipWarned && draft.title.trim() && (
+          <p role="status" className="rounded-lg bg-warn-soft px-3 py-2 text-sm text-warn">
+            &ldquo;{draft.title.trim()}&rdquo; isn&rsquo;t saved yet. Press Add to my list to keep it, or I&rsquo;ll add
+            tasks later again to skip it.
+          </p>
+        )}
       </form>
     </>
   );

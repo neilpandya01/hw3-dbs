@@ -1,6 +1,7 @@
 "use client";
 
-import { ButtonLink, Button } from "@/components/Button";
+import { ButtonLink } from "@/components/Button";
+import { ConfirmButton } from "@/components/ConfirmButton";
 import { EmptyState, ListSkeleton, PageHeader, Section } from "@/components/Page";
 import { TaskList, TaskRow } from "@/components/TaskRow";
 import { useTaskActions } from "@/components/useTaskActions";
@@ -46,9 +47,14 @@ export function DoneView() {
               </Section>
             );
           })}
-          <Button variant="danger" className="self-start" onClick={() => actions.letGo(done)}>
+          <ConfirmButton
+            className="self-start"
+            question={`Delete all ${done.length} finished tasks?`}
+            confirmLabel="Yes, delete"
+            onConfirm={() => actions.letGo(done)}
+          >
             Clear finished tasks
-          </Button>
+          </ConfirmButton>
         </>
       )}
     </>

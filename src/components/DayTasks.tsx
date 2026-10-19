@@ -31,7 +31,7 @@ export function DayTasks({
           highlight={task.id === highlightId}
           actions={
             isPast && !task.done ? (
-              <Button variant="ghost" size="sm" onClick={() => actions.move([task], today, "today")}>
+              <Button variant="ghost" size="sm" onClick={() => actions.move([task], today, "Today")}>
                 Move to today
               </Button>
             ) : undefined

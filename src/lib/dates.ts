@@ -46,6 +46,16 @@ export function formatDay(key: string): string {
   });
 }
 
+/** "Thu, Oct 22, 2027": with the year, for dates far enough away that the year matters. */
+export function formatLongDay(key: string): string {
+  return fromKey(key)!.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 /** "Today", "Tomorrow", "Yesterday", or "Thu, Oct 23" */
 export function dayName(key: string, today: string): string {
   const diff = daysBetween(today, key);

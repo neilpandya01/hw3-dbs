@@ -91,7 +91,9 @@ After onboarding, every page shares the same navigation bar: **Today · Upcoming
 | Upcoming | `/upcoming` | Everything planned after today, grouped by day |
 | Done | `/done` | Finished tasks grouped by the day you finished them, plus **Clear finished tasks** |
 
-Shared components live in [`src/components`](src/components): `Button`, `Field` and `TextInput` (a label, the input, then its error), `ChoiceChips`, `DayPicker`, `WrapUpTimeField` (used in onboarding and the Today editor), `TaskRow`, `Toast` (with Undo), `FirstHint`, `Nav`, and `EmptyState`.
+Every task has an **Edit** button for fixing mistakes: rename it, move it to another day, or delete it. Any change can be undone. The full list of mistakes the app catches is in the human-error audit in [flows.md](flows.md#human-error-audit).
+
+Shared components live in [`src/components`](src/components): `Button`, `Field` and `TextInput` (a label, the input, then its error), `ChoiceChips`, `DayPicker`, `WrapUpTimeField` (used in onboarding and the Today editor), `TaskRow`, `Toast` (with Undo), `FirstHint`, `TaskEditor`, `ConfirmButton` (asks before bulk deletes), `Nav`, and `EmptyState`.
 
 Data is saved under one localStorage key, `todo:v1` ([`src/lib/store.ts`](src/lib/store.ts)). Days are stored as local `YYYY-MM-DD` dates ([`src/lib/dates.ts`](src/lib/dates.ts)).
 

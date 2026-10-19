@@ -84,13 +84,14 @@ function Form({ today, preset, tasks }: { today: string; preset: string | null; 
         picked={picked}
         today={today}
         error={draft.errors.date}
+        warning={draft.dateWarning}
         onChoice={(c) => {
           setDay({ choice: c, picked });
-          draft.setErrors((e) => ({ ...e, date: undefined }));
+          draft.changeDay();
         }}
         onPicked={(p) => {
           setDay({ choice, picked: p });
-          draft.setErrors((e) => ({ ...e, date: undefined }));
+          draft.changeDay();
         }}
       />
 

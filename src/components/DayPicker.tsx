@@ -26,6 +26,7 @@ export function DayPicker({
   picked,
   today,
   error,
+  warning,
   hint,
   onChoice,
   onPicked,
@@ -35,6 +36,8 @@ export function DayPicker({
   picked: string;
   today: string;
   error?: string;
+  /** A soft warning (e.g. a likely typo in the year); the next submit accepts it. */
+  warning?: string;
   hint?: ReactNode;
   onChoice: (c: DayChoice) => void;
   onPicked: (key: string) => void;
@@ -70,6 +73,11 @@ export function DayPicker({
         </div>
       )}
       <FieldError id={id} error={error} />
+      {warning && !error && (
+        <p role="status" className="rounded-lg bg-warn-soft px-3 py-2 text-sm text-warn">
+          {warning}
+        </p>
+      )}
     </fieldset>
   );
 }

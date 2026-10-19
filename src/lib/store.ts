@@ -174,6 +174,12 @@ export function moveTasks(ids: string[], date: string): Undo {
   return undo;
 }
 
+export function updateTask(id: string, patch: { title: string; date: string }): Undo {
+  const undo = snapshotTasks();
+  updateTasks((tasks) => tasks.map((t) => (t.id === id ? { ...t, title: patch.title.trim(), date: patch.date } : t)));
+  return undo;
+}
+
 export function deleteTasks(ids: string[]): Undo {
   const undo = snapshotTasks();
   updateTasks((tasks) => tasks.filter((t) => !ids.includes(t.id)));
@@ -200,6 +206,11 @@ export function dismissFirstHint() {
 
 export function dismissWrapUp(today: string) {
   update((d) => ({ ...d, wrapUpDismissedOn: today }));
+}
+
+/** Bring back a wrap-up card that was dismissed with "Not now". */
+export function reopenWrapUp() {
+  update((d) => ({ ...d, wrapUpDismissedOn: null }));
 }
 
 export function dismissStorageNotice() {

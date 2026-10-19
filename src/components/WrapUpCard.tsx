@@ -1,14 +1,16 @@
 "use client";
 
 import { addDays, ageLabel } from "@/lib/dates";
-import { dismissWrapUp, type Task } from "@/lib/store";
+import { dismissWrapUp, reopenWrapUp, type Task } from "@/lib/store";
 import { Button } from "./Button";
 import { MoveToDay } from "./MoveToDay";
+import { useToast } from "./Toast";
 import { useTaskActions } from "./useTaskActions";
 
 /** Step 4: after the wrap-up time, decide what happens to what's left. Ignoring it is fine too. */
 export function WrapUpCard({ leftovers, today }: { leftovers: Task[]; today: string }) {
   const actions = useTaskActions();
+  const toast = useToast();
   const tomorrow = addDays(today, 1);
 
   return (
@@ -30,7 +32,7 @@ export function WrapUpCard({ leftovers, today }: { leftovers: Task[]; today: str
               {task.date < today && <span className="ml-2 text-sm text-muted">{ageLabel(task.date, today)}</span>}
             </span>
             <div className="flex flex-wrap gap-1">
-              <Button variant="ghost" size="sm" onClick={() => actions.move([task], tomorrow, "tomorrow")}>
+              <Button variant="ghost" size="sm" onClick={() => actions.move([task], tomorrow, "Tomorrow")}>
                 Keep for tomorrow
               </Button>
               <MoveToDay task={task} today={today} />
@@ -43,8 +45,14 @@ export function WrapUpCard({ leftovers, today }: { leftovers: Task[]; today: str
       </ul>
 
       <div className="flex flex-col gap-2 sm:flex-row">
-        <Button onClick={() => actions.move(leftovers, tomorrow, "tomorrow")}>Move all to tomorrow</Button>
-        <Button variant="secondary" onClick={() => dismissWrapUp(today)}>
+        <Button onClick={() => actions.move(leftovers, tomorrow, "Tomorrow")}>Move all to tomorrow</Button>
+        <Button
+          variant="secondary"
+          onClick={() => {
+            dismissWrapUp(today);
+            toast("Wrap-up hidden for tonight. Bring it back with Wrap up now at the top.", reopenWrapUp);
+          }}
+        >
           Not now
         </Button>
       </div>

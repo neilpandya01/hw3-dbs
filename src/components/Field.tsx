@@ -24,8 +24,7 @@ export function Field({
       {children}
       <div aria-live="polite">
         {error && (
-          <p id={`${id}-error`} className="flex items-start gap-1.5 text-sm font-medium text-danger">
-            <span aria-hidden="true">!</span>
+          <p id={`${id}-error`} className="text-sm font-medium text-danger">
             {error}
           </p>
         )}

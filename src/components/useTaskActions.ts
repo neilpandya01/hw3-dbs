@@ -15,7 +15,7 @@ export function useTaskActions() {
     },
     letGo(tasks: Task[]) {
       const undo = deleteTasks(tasks.map((t) => t.id));
-      toast(`Let go of ${describe(tasks)}`, undo);
+      toast(`Deleted ${describe(tasks)}`, { undo, seconds: 10 });
     },
   };
 }

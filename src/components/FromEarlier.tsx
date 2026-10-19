@@ -3,6 +3,7 @@
 import { ageLabel } from "@/lib/dates";
 import type { Task } from "@/lib/store";
 import { Button } from "./Button";
+import { ConfirmButton } from "./ConfirmButton";
 import { MoveToDay } from "./MoveToDay";
 import { Section } from "./Page";
 import { TaskList, TaskRow } from "./TaskRow";
@@ -17,12 +18,19 @@ export function FromEarlier({ tasks, today }: { tasks: Task[]; today: string }) 
       title={`From earlier · ${tasks.length}`}
       actions={
         <>
-          <Button variant="ghost" size="sm" onClick={() => actions.move(tasks, today, "today")}>
+          <Button variant="ghost" size="sm" onClick={() => actions.move(tasks, today, "Today")}>
             Move all to today
           </Button>
-          <Button variant="danger" size="sm" onClick={() => actions.letGo(tasks)}>
-            Clear all
-          </Button>
+          {tasks.length === 1 ? null : (
+            <ConfirmButton
+              size="sm"
+              question={`Delete all ${tasks.length}?`}
+              confirmLabel="Yes, delete"
+              onConfirm={() => actions.letGo(tasks)}
+            >
+              Clear all
+            </ConfirmButton>
+          )}
         </>
       }
     >
@@ -34,7 +42,7 @@ export function FromEarlier({ tasks, today }: { tasks: Task[]; today: string }) 
             meta={ageLabel(task.date, today)}
             actions={
               <>
-                <Button variant="ghost" size="sm" onClick={() => actions.move([task], today, "today")}>
+                <Button variant="ghost" size="sm" onClick={() => actions.move([task], today, "Today")}>
                   Move to today
                 </Button>
                 <MoveToDay task={task} today={today} />

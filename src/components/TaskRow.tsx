@@ -1,10 +1,21 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
+import { dayName, todayKey } from "@/lib/dates";
 import { toggleTask, type Task } from "@/lib/store";
+import { Button } from "./Button";
+import { TaskEditor } from "./TaskEditor";
 import { useToast } from "./Toast";
 
-/** One task: a square checkbox labeled by the task name, plus optional meta and actions. */
+/** Where an un-checked task shows up again, so the person isn't left wondering. */
+function reopenedMessage(task: Task): string {
+  const today = todayKey();
+  if (task.date < today) return `"${task.title}" is not done. It's back under From earlier on Today.`;
+  if (task.date === today) return `"${task.title}" is not done. It's back on Today.`;
+  return `"${task.title}" is not done. It's back on ${dayName(task.date, today)}.`;
+}
+
+/** One task: a square checkbox labeled by the task name, an Edit button, plus optional meta and actions. */
 export function TaskRow({
   task,
   meta,
@@ -17,7 +28,23 @@ export function TaskRow({
   highlight?: boolean;
 }) {
   const toast = useToast();
+  const [editing, setEditing] = useState(false);
+  const editButton = useRef<HTMLButtonElement>(null);
   const id = `task-${task.id}`;
+
+  if (editing) {
+    return (
+      <li className="rounded-xl border border-accent bg-surface px-3 py-3">
+        <TaskEditor
+          task={task}
+          onClose={() => {
+            setEditing(false);
+            requestAnimationFrame(() => editButton.current?.focus());
+          }}
+        />
+      </li>
+    );
+  }
 
   return (
     <li
@@ -30,7 +57,7 @@ export function TaskRow({
           checked={task.done}
           onChange={() => {
             const undo = toggleTask(task.id);
-            toast(task.done ? `Marked "${task.title}" not done` : `Done: "${task.title}"`, undo);
+            toast(task.done ? reopenedMessage(task) : `Done: "${task.title}"`, undo);
           }}
           className="mt-0.5 size-5 shrink-0 cursor-pointer accent-[var(--accent)]"
         />
@@ -43,8 +70,18 @@ export function TaskRow({
           </label>
           {meta && <span className="text-sm text-muted">{meta}</span>}
         </div>
+        <Button
+          ref={editButton}
+          variant="ghost"
+          size="sm"
+          className="-my-1 shrink-0"
+          aria-label={`Edit "${task.title}"`}
+          onClick={() => setEditing(true)}
+        >
+          Edit
+        </Button>
       </div>
-      {actions && <div className="flex flex-wrap gap-1 pl-9">{actions}</div>}
+      {actions && <div className="flex flex-wrap gap-1 pl-8">{actions}</div>}
     </li>
   );
 }

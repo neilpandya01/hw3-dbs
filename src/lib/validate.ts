@@ -1,12 +1,20 @@
-import { formatDay, isValidKey } from "./dates";
+import { daysBetween, formatDay, formatLongDay, isValidKey } from "./dates";
 import type { Task } from "./store";
 
 export const MAX_TITLE = 120;
 
 export type TaskErrors = { title?: string; date?: string };
 
-/** Errors say what to do next, and sit next to the field they're about. */
-export function validateTask(title: string, date: string, today: string): TaskErrors {
+/**
+ * Errors say what to do next, and sit next to the field they're about.
+ * `originalDate` lets an edited task keep the past day it already has.
+ */
+export function validateTask(
+  title: string,
+  date: string,
+  today: string,
+  { originalDate }: { originalDate?: string } = {},
+): TaskErrors {
   const errors: TaskErrors = {};
   const trimmed = title.trim();
   if (!trimmed) errors.title = "Enter a task name.";
@@ -14,8 +22,14 @@ export function validateTask(title: string, date: string, today: string): TaskEr
     errors.title = `Shorten this to ${MAX_TITLE} characters or fewer (now ${trimmed.length}).`;
 
   if (!date || !isValidKey(date)) errors.date = "Pick a day for this task.";
-  else if (date < today) errors.date = "Pick today or a later day.";
+  else if (date < today && date !== originalDate) errors.date = "Pick today or a later day.";
   return errors;
+}
+
+/** A date more than a year out is usually a typo in the year (2062 for 2026). Warn once; don't block. */
+export function farFutureWarning(date: string, today: string): string | null {
+  if (!isValidKey(date) || daysBetween(today, date) <= 365) return null;
+  return `${formatLongDay(date)} is more than a year away. Check the year, or press the button again to keep it.`;
 }
 
 // ---- "Too similar" check: a soft warning, never a block ----
@@ -49,22 +63,27 @@ function isSimilar(a: string, b: string): boolean {
 }
 
 /** A warning to show under the task field, or null. Only compares unfinished tasks on the same day. */
-export function similarWarning(title: string, date: string, tasks: Task[]): { message: string; match: Task } | null {
+export function similarWarning(
+  title: string,
+  date: string,
+  tasks: Task[],
+  { excludeId, button = "Add" }: { excludeId?: string; button?: string } = {},
+): { message: string; match: Task } | null {
   const wanted = normalize(title);
   if (!wanted) return null;
-  const sameDay = tasks.filter((t) => t.date === date && !t.done);
+  const sameDay = tasks.filter((t) => t.date === date && !t.done && t.id !== excludeId);
   const exact = sameDay.find((t) => normalize(t.title) === wanted);
   if (exact) {
     return {
       match: exact,
-      message: `"${exact.title}" is already on ${formatDay(date)}. Add it anyway? Press Add again.`,
+      message: `"${exact.title}" is already on ${formatDay(date)}. To keep both, press ${button} again.`,
     };
   }
   const close = sameDay.find((t) => isSimilar(normalize(t.title), wanted));
   if (close) {
     return {
       match: close,
-      message: `This looks like "${close.title}", already on ${formatDay(date)}. Change the name, or press Add again to keep both.`,
+      message: `This looks like "${close.title}", already on ${formatDay(date)}. Change the name, or press ${button} again to keep both.`,
     };
   }
   return null;
