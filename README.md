@@ -27,7 +27,31 @@ flowchart LR
   H -- Move to today / Pick a day / Check off / Let it go --> B
 ```
 
-### Steps
+### First visit
+
+Someone with nothing saved is sent to `/welcome`. It takes two short steps, and both can be skipped:
+
+1. **What Dayplan is, plus one question.** The page says *"Plan your tasks day by day,"* explains how it works in three numbered lines, and notes that everything is saved on this device. Then it asks: **"When are you usually done with tasks for the day?"** That answer sets the nightly wrap-up time.
+2. **Add your first task by example.** Tap an example such as *+ Do laundry* or type your own. Put it on **Today**, or, if there's nothing for today, on **Tomorrow** or another day.
+
+You then land on that day's list with your task on it, plus a one-time hint about checking it off and the wrap-up. There's no tour and no empty screen.
+
+```mermaid
+flowchart LR
+  A([Nothing saved]) --> B["What Dayplan is + when are you done for the day?"]
+  B --> C["Add your first task (tap an example), for today or another day"]
+  C --> D["That day's list + one-time hint"]
+  B -. skip .-> E[Today]
+  C -. later .-> E
+```
+
+**What I took from the onboarding research** (Sunsama, Tweek, Todoist):
+- **From Tweek:** open onto something useful right away, with no account, and teach by doing.
+- **From Sunsama:** ask when you finish your day, because that time drives the evening wrap-up.
+- **From Todoist:** example tasks that show what to type.
+- **Avoided:** Sunsama's long required setup wizard and Todoist's survey about role and industry.
+
+### Main task steps
 
 Each arrow in the sentence is a step, and each step has its own page (route) with shared navigation: **Today · Upcoming · Done**, plus a **+ Add** button.
 
@@ -51,3 +75,31 @@ I worked out this flow with my agent in plan mode. Along the way I made these ch
 - **Not included, to keep it simple:** projects, tags, priorities, and recurring tasks.
 
 The full list of steps, states, and errors is in [flows.md](flows.md).
+
+---
+
+## Pages
+
+Every page shares the same navigation bar: **Today · Upcoming · Done**, plus **+ Add**. The tab you're on is marked, and the app name always links back to Today.
+
+| Page | Route | What's on it |
+|---|---|---|
+| Welcome | `/welcome` | The first visit: what Dayplan is, your wrap-up time, and your first task |
+| Today | `/` | Quick-add for today, the Wrap up your day card (after your wrap-up time), **From earlier**, and today's list |
+| Add a task | `/add` | The form: **Task** and **Day** (Today, Tomorrow, or Pick a day), with errors next to each field. `/add?date=2026-10-23` pre-fills the day. |
+| A single day | `/day/[date]` | One day's list, with links to the previous and next day |
+| Upcoming | `/upcoming` | Everything planned after today, grouped by day |
+| Done | `/done` | Finished tasks grouped by the day you finished them, plus **Clear finished tasks** |
+
+Shared components live in [`src/components`](src/components): `Button`, `Field` and `TextInput` (a label, the input, then its error), `ChoiceChips`, `DayPicker`, `TaskRow`, `Toast` (with Undo), `FirstHint`, `Nav`, and `EmptyState`.
+
+Data is saved under one localStorage key, `todo:v1` ([`src/lib/store.ts`](src/lib/store.ts)). Days are stored as local `YYYY-MM-DD` dates ([`src/lib/dates.ts`](src/lib/dates.ts)).
+
+## Run it locally
+
+```bash
+npm install
+npm run dev
+```
+
+Then open http://localhost:3000.

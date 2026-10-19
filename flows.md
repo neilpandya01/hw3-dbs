@@ -1,4 +1,4 @@
-# Flows: Main Task
+# Flows
 
 ## Main task (one sentence)
 
@@ -88,6 +88,52 @@ flowchart LR
 
 ---
 
+## First visit (onboarding)
+
+> **I open Dayplan with nothing saved → it tells me what it's for and asks when I'm usually done for the day → I add my first task by tapping an example, for today or another day → I land on that day's list, with a one-time hint on how it works.**
+
+```mermaid
+flowchart TD
+  A([Open Dayplan]) --> B{Anything saved?}
+  B -- Yes --> T[Today]
+  B -- No --> W1["/welcome step 1 of 2: what Dayplan does + 'When are you usually done with tasks for the day?'"]
+  W1 -- error next to the question --> W1
+  W1 -- Skip setup, use 6 PM --> T
+  W1 -- Continue: time saved --> W2["Step 2 of 2: Add your first task (tap an example or type)"]
+  W2 -- Back --> W1
+  W2 -- error next to field, input kept --> W2
+  W2 -- "I'll add tasks later" --> T
+  W2 -- Add, for Today --> T
+  W2 -- Add, for Tomorrow or another day --> D["That day's list"]
+  T --> H[One-time hint: check it off, wrap-up time, From earlier]
+  D --> H
+```
+
+| Step | Page | What happens |
+|---|---|---|
+| 1. Say what it is and ask the one question | `/welcome` | The headline is **"Plan your tasks day by day."** Below it are three numbered lines: add tasks to any day, check them off, and keep or move what's left at the end of the day. Then comes the line *"Saved on this device. No account needed."* The question is **"When are you usually done with tasks for the day?"**, with 5–9 PM chips or **Other time**. |
+| 2. Add a first task by example | `/welcome` (same page, step 2) | Example chips (**+ Reply to emails**, **+ Do laundry**, …) fill in the Task field. The Day field offers Today, Tomorrow, or Pick a day, with the note *"Nothing for today? Choose Tomorrow or pick another day."* |
+| 3. Land on the list | `/` or `/day/[date]` | The new task is highlighted and a toast appears with Undo. A **"You're set up"** hint explains checking off, the wrap-up time, and From earlier. It goes away after the first check-off or **Got it**. |
+
+**States**
+
+| State | What shows |
+|---|---|
+| Nothing saved | Opening `/` sends you to `/welcome`, with a skeleton while it loads (never an empty list). |
+| Wrap-up time answered, then reload | It picks up again at step 2, because the time saves the moment you answer. |
+| Skipped setup | The wrap-up time is 6 PM and you land on Today's empty state: *"Nothing on today's list yet."* |
+| First task added late in the evening | The hint shows first. The wrap-up card waits until you dismiss the hint. |
+| Opening `/welcome` again later | It works as a way to redo setup, with your saved time already chosen. |
+
+**Errors**
+
+| Trigger | Message |
+|---|---|
+| Pressing Continue with no time chosen | **"Pick the time you usually finish for the day."** |
+| Choosing Other time and leaving it empty | **"Enter a time, like 7:00 PM."** |
+| A morning time (before 12 PM) | **"9 AM is in the morning. If that's when you finish for the day, press Continue again."** This is a soft warning. |
+| An empty first task | **"Enter a task name."** The day you picked is kept. |
+| A past date chosen with Pick a day | **"Pick today or a later day."** |
+
 ## Parked for later steps (not part of this answer)
-- **First visit (Step 4):** quick-add plus starter chips, then a "When do you usually stop doing tasks?" card that sets the wrap-up time (6 PM by default).
 - **Coming back (Step 6):** the streak and the `/done` history, plus `/settings` for changing the wrap-up time.

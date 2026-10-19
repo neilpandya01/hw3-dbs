@@ -7,3 +7,19 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+# Project: Dayplan (HW3, Design Build Ship)
+
+A day-by-day personal to-do list. Main flow: I jot a task for a certain day → it's on that day's list → I check it off → at my wrap-up time I keep or push what's left; if I don't, it carries into tomorrow under "From earlier." See `flows.md`.
+
+## Constraints
+- Next.js + Tailwind CSS only. Data lives in localStorage (`src/lib/store.ts`, key `todo:v1`). No database, backend, accounts, external APIs, or extra npm packages (no date, state, or UI libraries).
+- Cache Components is on: any client component that reads the URL (`usePathname`, `useParams`, `useSearchParams`) must sit inside `<Suspense>`, or the build fails.
+- Days are local `YYYY-MM-DD` keys from `src/lib/dates.ts`. Never use `toISOString()` for a day.
+
+## Conventions
+- Use the shared components in `src/components` (`Button`, `Field`/`TextInput`, `DayPicker`, `TaskRow`, `Toast`, `EmptyState`, `PageHeader`) rather than one-off markup.
+- Form errors sit under their field and say what to do next ("Enter a task name."). Never clear what the person typed on an error.
+- Changes to tasks show a toast with Undo instead of a confirmation dialog.
+- Colors come from the tokens in `src/app/globals.css` (light and dark). Every input has a real `<label>`.
+- Check with `npm run build` and `npm run lint` before committing.

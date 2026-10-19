@@ -1,0 +1,107 @@
+"use client";
+
+import { useRouter, useSearchParams } from "next/navigation";
+import { useRef, useState } from "react";
+import { Button, ButtonLink } from "@/components/Button";
+import { DayPicker, resolveDay, type DayChoice } from "@/components/DayPicker";
+import { describedBy, Field, TextInput } from "@/components/Field";
+import { ListSkeleton } from "@/components/Page";
+import { useTaskDraft } from "@/components/useTaskDraft";
+import { useClock } from "@/lib/clock";
+import { addDays, dayHref, isValidKey } from "@/lib/dates";
+import { useStore, type Task } from "@/lib/store";
+import { MAX_TITLE } from "@/lib/validate";
+
+/** Step 1: jot a task for a certain day. `/add?date=2026-10-23` pre-fills the day. */
+export function AddForm() {
+  const store = useStore();
+  const clock = useClock();
+  const preset = useSearchParams().get("date");
+  if (!store || !clock) return <ListSkeleton />;
+  return <Form key={preset} today={clock.today} preset={preset} tasks={store.data.tasks} />;
+}
+
+function initialChoice(preset: string | null, today: string): { choice: DayChoice; picked: string } {
+  if (!preset || !isValidKey(preset) || preset <= today) return { choice: "today", picked: "" };
+  if (preset === addDays(today, 1)) return { choice: "tomorrow", picked: "" };
+  return { choice: "pick", picked: preset };
+}
+
+function Form({ today, preset, tasks }: { today: string; preset: string | null; tasks: Task[] }) {
+  const router = useRouter();
+  const draft = useTaskDraft();
+  const [{ choice, picked }, setDay] = useState(() => initialChoice(preset, today));
+  const [submitting, setSubmitting] = useState(false);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const date = resolveDay(choice, picked, today);
+  const length = draft.title.trim().length;
+  const titleMessages = {
+    error: draft.errors.title,
+    warning: draft.warning?.message,
+    hint: length > MAX_TITLE - 20 ? `${length} of ${MAX_TITLE} characters` : undefined,
+  };
+
+  return (
+    <form
+      ref={formRef}
+      noValidate
+      className="flex flex-col gap-6"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (submitting) return;
+        const result = draft.submit(date, today, tasks);
+        if (result.id) {
+          setSubmitting(true);
+          router.push(dayHref(date, today));
+          return;
+        }
+        // Put the cursor on the first field that needs attention.
+        if (result.errors.date && !result.errors.title) {
+          formRef.current?.querySelector<HTMLElement>('input[type="date"], input[type="radio"]:checked')?.focus();
+        } else {
+          titleRef.current?.focus();
+        }
+      }}
+    >
+      <Field id="title" label="Task" {...titleMessages}>
+        <TextInput
+          ref={titleRef}
+          id="title"
+          autoFocus
+          autoComplete="off"
+          placeholder="e.g. Call the dentist"
+          value={draft.title}
+          invalid={!!draft.errors.title}
+          aria-describedby={describedBy("title", titleMessages)}
+          onChange={(e) => draft.changeTitle(e.target.value)}
+        />
+      </Field>
+
+      <DayPicker
+        id="day"
+        choice={choice}
+        picked={picked}
+        today={today}
+        error={draft.errors.date}
+        onChoice={(c) => {
+          setDay({ choice: c, picked });
+          draft.setErrors((e) => ({ ...e, date: undefined }));
+        }}
+        onPicked={(p) => {
+          setDay({ choice, picked: p });
+          draft.setErrors((e) => ({ ...e, date: undefined }));
+        }}
+      />
+
+      <div className="flex flex-col gap-2 sm:flex-row-reverse sm:justify-start">
+        <Button type="submit" disabled={submitting}>
+          Add
+        </Button>
+        <ButtonLink variant="secondary" href={preset && isValidKey(preset) ? dayHref(preset, today) : "/"}>
+          Cancel
+        </ButtonLink>
+      </div>
+    </form>
+  );
+}

@@ -1,0 +1,126 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useRef, useState, type RefObject } from "react";
+import { Button } from "@/components/Button";
+import { DayPicker, resolveDay, type DayChoice } from "@/components/DayPicker";
+import { describedBy, Field, TextInput } from "@/components/Field";
+import { useTaskDraft } from "@/components/useTaskDraft";
+import { dayHref } from "@/lib/dates";
+import { finishOnboarding } from "@/lib/store";
+
+const EXAMPLES = ["Reply to emails", "Do laundry", "Call Mom", "Pay a bill", "Go to the gym"];
+
+/** Step 2: learn by doing. Add one real task, for today or another day, or skip. */
+export function FirstTaskStep({
+  headingRef,
+  today,
+  onBack,
+}: {
+  headingRef: RefObject<HTMLHeadingElement | null>;
+  today: string;
+  onBack: () => void;
+}) {
+  const router = useRouter();
+  const draft = useTaskDraft();
+  const [day, setDay] = useState<{ choice: DayChoice; picked: string }>({ choice: "today", picked: "" });
+  const input = useRef<HTMLInputElement>(null);
+  const date = resolveDay(day.choice, day.picked, today);
+  const titleMessages = { error: draft.errors.title };
+
+  return (
+    <>
+      <header className="flex flex-col gap-1">
+        <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-semibold tracking-tight text-ink outline-none">
+          Add your first task
+        </h1>
+        <p className="text-muted">What&rsquo;s one thing you need to do? Tap an example or write your own.</p>
+      </header>
+
+      <form
+        noValidate
+        className="flex flex-col gap-6 rounded-2xl border border-line bg-surface p-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          // A brand-new list has nothing to be similar to, so this only ever adds or shows errors.
+          const result = draft.submit(date, today, []);
+          if (result.id) {
+            finishOnboarding({ addedTask: true });
+            router.push(dayHref(date, today));
+          } else if (result.errors.title) {
+            input.current?.focus();
+          }
+        }}
+      >
+        <div className="flex flex-col gap-2">
+          <p id="examples-label" className="text-sm text-muted">
+            Examples
+          </p>
+          <div role="group" aria-labelledby="examples-label" className="flex flex-wrap gap-2">
+            {EXAMPLES.map((ex) => (
+              <button
+                key={ex}
+                type="button"
+                className="min-h-9 rounded-full border border-dashed border-line px-3 text-sm text-ink hover:border-accent hover:bg-accent-soft"
+                onClick={() => {
+                  draft.changeTitle(ex);
+                  input.current?.focus();
+                }}
+              >
+                + {ex}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <Field id="first-task" label="Task" {...titleMessages}>
+          <TextInput
+            ref={input}
+            id="first-task"
+            autoFocus
+            autoComplete="off"
+            placeholder="e.g. Call the dentist"
+            value={draft.title}
+            invalid={!!draft.errors.title}
+            aria-describedby={describedBy("first-task", titleMessages)}
+            onChange={(e) => draft.changeTitle(e.target.value)}
+          />
+        </Field>
+
+        <DayPicker
+          id="first-task-day"
+          choice={day.choice}
+          picked={day.picked}
+          today={today}
+          error={draft.errors.date}
+          hint="Nothing for today? Choose Tomorrow or pick another day."
+          onChoice={(choice) => {
+            setDay((d) => ({ ...d, choice }));
+            draft.setErrors((e) => ({ ...e, date: undefined }));
+          }}
+          onPicked={(picked) => {
+            setDay((d) => ({ ...d, picked }));
+            draft.setErrors((e) => ({ ...e, date: undefined }));
+          }}
+        />
+
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Button type="submit">Add to my list</Button>
+          <Button variant="secondary" onClick={onBack}>
+            Back
+          </Button>
+          <Button
+            variant="ghost"
+            className="sm:ml-auto"
+            onClick={() => {
+              finishOnboarding({ addedTask: false });
+              router.push("/");
+            }}
+          >
+            I&rsquo;ll add tasks later
+          </Button>
+        </div>
+      </form>
+    </>
+  );
+}
