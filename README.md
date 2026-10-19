@@ -34,7 +34,7 @@ Someone with nothing saved is sent to `/welcome`. It takes two short steps, and 
 1. **What Dayplan is, plus one question.** The page says *"Plan your tasks day by day,"* explains how it works in three numbered lines, and notes that everything is saved on this device. Then it asks: **"When are you usually done with tasks for the day?"** That answer sets the nightly wrap-up time.
 2. **Add your first task by example.** Tap an example such as *+ Do laundry* or type your own. Put it on **Today**, or, if there's nothing for today, on **Tomorrow** or another day.
 
-You then land on that day's list with your task on it, plus a one-time hint about checking it off and the wrap-up. There's no tour and no empty screen.
+The app name and navigation bar stay hidden until onboarding is finished. You then land on that day's list with your task on it, plus a one-time hint about checking it off and the wrap-up. There's no tour and no empty screen.
 
 ```mermaid
 flowchart LR
@@ -80,18 +80,18 @@ The full list of steps, states, and errors is in [flows.md](flows.md).
 
 ## Pages
 
-Every page shares the same navigation bar: **Today · Upcoming · Done**, plus **+ Add**. The tab you're on is marked, and the app name always links back to Today.
+After onboarding, every page shares the same navigation bar: **Today · Upcoming · Done**, plus **+ Add**. The tab you're on is marked, and the app name always links back to Today.
 
 | Page | Route | What's on it |
 |---|---|---|
 | Welcome | `/welcome` | The first visit: what Dayplan is, your wrap-up time, and your first task |
-| Today | `/` | Quick-add for today, the Wrap up your day card (after your wrap-up time), **From earlier**, and today's list |
+| Today | `/` | **Wrap-up at 6 PM every day · Edit** at the top to change your wrap-up time (one time for all days), quick-add for today, the Wrap up your day card (after your wrap-up time), **From earlier**, and today's list |
 | Add a task | `/add` | The form: **Task** and **Day** (Today, Tomorrow, or Pick a day), with errors next to each field. `/add?date=2026-10-23` pre-fills the day. |
 | A single day | `/day/[date]` | One day's list, with links to the previous and next day |
 | Upcoming | `/upcoming` | Everything planned after today, grouped by day |
 | Done | `/done` | Finished tasks grouped by the day you finished them, plus **Clear finished tasks** |
 
-Shared components live in [`src/components`](src/components): `Button`, `Field` and `TextInput` (a label, the input, then its error), `ChoiceChips`, `DayPicker`, `TaskRow`, `Toast` (with Undo), `FirstHint`, `Nav`, and `EmptyState`.
+Shared components live in [`src/components`](src/components): `Button`, `Field` and `TextInput` (a label, the input, then its error), `ChoiceChips`, `DayPicker`, `WrapUpTimeField` (used in onboarding and the Today editor), `TaskRow`, `Toast` (with Undo), `FirstHint`, `Nav`, and `EmptyState`.
 
 Data is saved under one localStorage key, `todo:v1` ([`src/lib/store.ts`](src/lib/store.ts)). Days are stored as local `YYYY-MM-DD` dates ([`src/lib/dates.ts`](src/lib/dates.ts)).
 

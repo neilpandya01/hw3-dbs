@@ -33,7 +33,7 @@
 | 2 | **Empty day** | *"Nothing planned for Thu, Oct 23."* with an **Add a task for this day** button. |
 | 3 | **Just checked** | Strikethrough plus an Undo toast. |
 | 3 | **All done for the day** | *"All clear for today."* with **Plan tomorrow** and **See upcoming** buttons. Not a dead end. |
-| 4 | **Before wrap-up time** | A normal list, with "Wrap-up at 7 PM" in the header. |
+| 4 | **Before wrap-up time** | A normal list, with "Wrap-up at 7 PM every day · **Edit**" in the header. Edit opens the same time question as onboarding. There is one wrap-up time for all days, so changing it affects every day. |
 | 4 | **Wrap-up due** | The Wrap up your day card at the top of the list. |
 | 4 | **Wrap-up dismissed** | No card tonight. Tasks are unchanged. |
 | 4 | **Day wrapped** | *"Day wrapped. 4 done today."* |
@@ -119,7 +119,7 @@ flowchart TD
 
 | State | What shows |
 |---|---|
-| Nothing saved | Opening `/` sends you to `/welcome`, with a skeleton while it loads (never an empty list). |
+| Nothing saved | Opening `/` sends you to `/welcome`, with a skeleton while it loads (never an empty list). The app name and navigation bar stay hidden until onboarding is finished, so the only choices are the welcome steps. |
 | Wrap-up time answered, then reload | It picks up again at step 2, because the time saves the moment you answer. |
 | Skipped setup | The wrap-up time is 6 PM and you land on Today's empty state: *"Nothing on today's list yet."* |
 | First task added late in the evening | The hint shows first. The wrap-up card waits until you dismiss the hint. |
@@ -136,4 +136,4 @@ flowchart TD
 | A past date chosen with Pick a day | **"Pick today or a later day."** |
 
 ## Parked for later steps (not part of this answer)
-- **Coming back (Step 6):** the streak and the `/done` history, plus `/settings` for changing the wrap-up time.
+- **Coming back (Step 6):** the streak and the `/done` history. (The wrap-up time can already be changed from **Edit** at the top of Today.)

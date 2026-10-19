@@ -9,8 +9,9 @@ import { FromEarlier } from "@/components/FromEarlier";
 import { EmptyState, ListSkeleton, PageHeader, Section } from "@/components/Page";
 import { QuickAdd } from "@/components/QuickAdd";
 import { WrapUpCard } from "@/components/WrapUpCard";
+import { WrapUpSetting } from "@/components/WrapUpSetting";
 import { useClock } from "@/lib/clock";
-import { addDays, formatDay, formatTime, minutesOf } from "@/lib/dates";
+import { addDays, formatDay, minutesOf } from "@/lib/dates";
 import { doneOn, fromEarlier, isNewUser, tasksOn, useStore, wrapUpTime } from "@/lib/store";
 
 /** The home page: today's list, quick-add, what's carried over, and the evening wrap-up. */
@@ -46,12 +47,10 @@ export function TodayView() {
     <>
       <PageHeader
         title={`Today · ${formatDay(today)}`}
-        subtitle={
-          wrapped
-            ? `Day wrapped. ${doneToday} done today.`
-            : `Wrap-up at ${formatTime(wrapTime)}${doneToday ? ` · ${doneToday} done today` : ""}`
-        }
-      />
+        subtitle={wrapped ? `Day wrapped. ${doneToday} done today.` : doneToday ? `${doneToday} done today` : undefined}
+      >
+        <WrapUpSetting data={data} />
+      </PageHeader>
 
       <FirstHint data={data} />
 

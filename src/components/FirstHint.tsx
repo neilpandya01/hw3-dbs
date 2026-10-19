@@ -14,7 +14,7 @@ export function FirstHint({ data }: { data: Data }) {
     >
       <div className="flex flex-1 flex-col gap-1 text-sm text-ink">
         <p className="font-semibold">You&rsquo;re set up. Your first task is on the list.</p>
-        <p>Check the circle when it&rsquo;s done.</p>
+        <p>Check the box when it&rsquo;s done.</p>
         <p>
           At {formatTime(wrapUpTime(data))} each day, Dayplan asks what to do with anything left. If you skip that,
           leftovers wait for you under &ldquo;From earlier&rdquo;.

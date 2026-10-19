@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { toggleTask, type Task } from "@/lib/store";
 import { useToast } from "./Toast";
 
-/** One task: a real checkbox labeled by the task name, plus optional meta and actions. */
+/** One task: a square checkbox labeled by the task name, plus optional meta and actions. */
 export function TaskRow({
   task,
   meta,
@@ -32,7 +32,7 @@ export function TaskRow({
             const undo = toggleTask(task.id);
             toast(task.done ? `Marked "${task.title}" not done` : `Done: "${task.title}"`, undo);
           }}
-          className="mt-0.5 size-6 shrink-0 cursor-pointer rounded-full accent-[var(--accent)]"
+          className="mt-0.5 size-5 shrink-0 cursor-pointer accent-[var(--accent)]"
         />
         <div className="flex min-w-0 flex-1 flex-col">
           <label
