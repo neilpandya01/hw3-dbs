@@ -1,5 +1,13 @@
 # Flows
 
+Dayplan is built around three flows. Each one has a one-sentence summary and a diagram:
+
+1. **[First visit](#first-visit-onboarding):** read the overview → set your wrap-up time → add your first task.
+2. **[Main task](#main-task-one-sentence):** add a task for a day → it's on that day's list → check it off → wrap up what's left.
+3. **[Coming back](#coming-back-it-remembers):** the wrap-up check-in at your time, and leftovers waiting under From earlier.
+
+After those come the shared details: [Tab to complete](#tab-to-complete), [ordering and dragging](#ordering-and-dragging-today-at-a-glance-calendar), and the [human-error audit](#human-error-audit).
+
 ## Main task (one sentence)
 
 > **I jot a task for a certain day → it's on that day's list → I check it off → at my wrap-up time, I keep or push what's left; if I don't, it carries into tomorrow under "From earlier."**
@@ -16,7 +24,7 @@
 | 4 | **Wrap up: keep or push** | `/` | After your wrap-up time, a **Wrap up your day** card lists what's left. Each task has **Keep for tomorrow**, **Pick a day**, and **Let it go** buttons. **Move all to tomorrow** handles everything at once, and **Not now** hides the card for tonight. |
 | 5 | **Otherwise, carry forward** | `/` the next day | Unfinished tasks from past days appear in a **From earlier · N** section above today's tasks, each with its age (*"from Mon"*). They keep piling up until you check them off, move them to today, pick a day, or let them go. |
 
-**Shared nav:** `Today · At a Glance · Calendar · Done` plus a **+ Add task** button. Each page heading names its day, e.g. "Today · Sun, Oct 19".
+**Shared nav:** `Today · At a Glance · Calendar · Done` plus a **+ Add task** button. Today's heading names the date, e.g. "Today · Sun, Oct 19", and every other page has its own heading.
 
 ---
 
@@ -27,7 +35,7 @@
 | any | **Loading** (saved data not read yet) | A skeleton list, so the page never flashes "empty" before data loads. |
 | 1 | **Form ready** | Task box focused, Day set to Today (or pre-filled from `/add?date=…`). |
 | 1 | **Form with errors** | Errors below their fields, what you typed kept, cursor on the first bad field. |
-| 1 | **Form submitting** | The button is briefly disabled so a double-click can't add the task twice. |
+| 1 | **Double submit** | A second click or Enter right after adding is ignored, because the field is already empty. The button is never disabled. |
 | 2 | **Just added** | The new task is light yellow for about 3 seconds, then fades back. With reduced motion, it stays yellow without fading. If it's off screen, the page scrolls it to the middle. |
 | 2 | **Day with tasks** | Unfinished tasks first, finished ones struck through below. |
 | 2 | **Empty day** | *"Nothing planned for Thu, Oct 23."* with an **Add a task for this day** button. |
@@ -35,7 +43,7 @@
 | 3 | **All done for the day** | *"All clear for today."* with **Plan tomorrow** and **See all tasks** buttons. Not a dead end. |
 | 4 | **Before wrap-up time** | A normal list. A thin strip at the very top of every page reads *☾ Your day wraps up at 7 PM · Change*. **Change** opens the same time question as onboarding. There is one wrap-up time for all days, so changing it affects every day. |
 | 4 | **Wrap-up due** | The Wrap up your day card at the top of the list. It appears at the wrap-up minute exactly: the clock ticks on each minute boundary and re-checks when you come back to the tab. |
-| 4 | **Wrap-up dismissed** | No card tonight. Tasks are unchanged. |
+| 4 | **Wrap-up dismissed** | No card tonight, and tasks are unchanged. A **Wrap up now** button under Today's heading brings the card back. |
 | 4 | **Day wrapped** | *"Day wrapped. 4 done today."* |
 | 5 | **From earlier present** | A separate section with a count, each task's age, and **Move all to today** / **Clear all** buttons (with Undo). |
 | 5 | **Only "From earlier" tasks** | That section plus quick-add for today. |
@@ -50,11 +58,11 @@
 | 1 | Task longer than 120 characters | **"Shorten this to 120 characters or fewer (now 134)."** |
 | 1 | No day chosen, or the date can't be read | **"Pick a day for this task."** |
 | 1 | A past date | **"Pick today or a later day."** |
-| 1 | The same unfinished task already on that day | **"'Laundry' is already on Thu, Oct 23. Add it anyway?"** This is a soft warning: submitting again adds it. |
-| 1 | A task very similar to an unfinished one on that day (e.g. "call mom" vs. "Call Mom!" or "Calll mom") | **"This looks like 'Call Mom', already on Thu, Oct 23. Change the name, or press Add again to keep both."** The existing task is shown with an **Edit that one instead** link. This is a soft warning: what you typed is kept, and a second submit adds it. |
+| 1 | The same unfinished task already on that day | **"'Laundry' is already on Thu, Oct 23. To keep both, press Add again."** This is a soft warning: submitting again adds it. |
+| 1 | A task very similar to an unfinished one on that day (e.g. "call mom" vs. "Call Mom!" or "Calll mom") | **"This looks like 'Call Mom', already on Thu, Oct 23. Change the name, or press Add again to keep both."** This is a soft warning: what you typed is kept, and a second submit adds it. |
 | 2 | Bad date in the address (`/calendar?day=abc`) | The calendar opens on this month with today selected. A month before this one opens this month instead. |
 | 2–5 | Accidental move, delete, or let go | A message at the bottom with **Undo**. An accidental add or check is reversed in place (Edit → Delete task, or uncheck), so it gets no message. |
-| 4 | Pick a day set to a past date | **"Pick today or a later day."** This shows in the date panel that opens under the task's buttons. The buttons stay together on one row, and the panel opens below them. |
+| 4 | Pick a day set to a past date, or the day it's already on | **"Pick today or a later day."** or **"It's already on Thu, Oct 23. Pick a different day."** This shows in the date panel that opens under the task's buttons. The buttons stay together on one row, and the panel opens below them. |
 | any | The browser can't save | Banner: **"This browser isn't saving. Tasks will disappear when you close the tab."** |
 | any | Storage is full | Banner: **"Storage is full. Clear finished tasks on the Done page to keep saving."** |
 | any | Saved data can't be read | Banner: **"We couldn't read your saved tasks, so we started a fresh list."** The old data is backed up first. |
@@ -124,7 +132,7 @@ flowchart TD
 | Nothing saved | Opening `/` sends you to `/welcome`, with a skeleton while it loads (never an empty list). The app name and navigation bar stay hidden until onboarding is finished, so the only choices are the welcome steps. |
 | Wrap-up time answered, then reload | It picks up again at step 3, because the time saves the moment you answer. |
 | First task added after the wrap-up time | The hint and the wrap-up card both show. |
-| Opening `/welcome` again later | It works as a way to redo setup, with your saved time already chosen. |
+| Opening `/welcome` again later | It opens at step 3, since the wrap-up time is already set. **Back** reaches the earlier steps, and the time can also be changed from the header. |
 
 **Errors**
 
@@ -140,6 +148,7 @@ flowchart TD
 
 | Situation | What happens |
 |---|---|
+| Where | Quick-add on Today, the Add page, and **+ Add task to {day}** on At a Glance. |
 | You've typed 2+ letters that start an earlier task's name | The rest of the name shows in grey inside the field. The hint underneath reads **"Press Tab to fill in 'Call Mom'."** |
 | Several earlier tasks match | The one used most often wins, then the most recent. Matching ignores case. |
 | Tab, or → at the end of the text | Fills in the full name. You can keep typing or press Add. |
@@ -179,5 +188,40 @@ I went through every flow looking for mistakes a person could make, then checked
 | Skipping onboarding with a task typed but not added | **"'Call Mom' isn't saved yet. Press Add to my list to keep it, or I'll add tasks later again to skip it."** |
 | A wrap-up time before 4 PM (12 AM–3:59 PM) | **"… seems too early. Press Save again to confirm."** |
 
-## Parked for later steps (not part of this answer)
-- **Coming back (Step 6):** the streak and the `/done` history. (The wrap-up time can already be changed from **Edit** in the header.)
+## Coming back (it remembers)
+
+> **I come back in the evening → at my wrap-up time Dayplan asks what to do with what's left → I keep it for tomorrow, move it, or let it go → if I skip that, tomorrow it's waiting under "From earlier."**
+
+```mermaid
+flowchart TD
+  A([Come back to Dayplan]) --> B{A new day since my last visit?}
+  B -- No --> C{Past my wrap-up time, with tasks left?}
+  C -- No --> T[Today, exactly as I left it]
+  C -- Yes --> W[Wrap up your day card]
+  W -- Keep for tomorrow / Pick a day / Let it go / Move all to tomorrow --> X(["Day wrapped. 4 done today."])
+  W -- Not now --> N[Hidden for tonight]
+  N -- Wrap up now --> W
+  B -- Yes --> E{Unfinished tasks from past days?}
+  E -- No --> P[Today, with anything planned for today]
+  E -- Yes --> F["Today with 'From earlier · N' on top"]
+  F -- Move to today / Pick a day / Check off / Let it go --> P
+```
+
+**Why come back:** a nightly check-in at a time you chose. Because unfinished tasks never disappear, opening the app always shows what's still waiting.
+
+| Return moment | What happens |
+|---|---|
+| Your wrap-up time arrives | The **Wrap up your day** card appears at that exact minute, even if the tab was left open. The clock ticks on each minute and re-checks when you return to the tab. |
+| You skip the wrap-up | **Not now** hides it for the night, and **Wrap up now** brings it back. Ignored leftovers roll into tomorrow. |
+| A new day starts | Today's list resets to the new date. Unfinished tasks from any past day pile up under **From earlier · N**, each with its age (*from Mon*), until you deal with them. Tasks planned for today show up on their own. |
+| You want the bigger picture | **At a Glance** shows every open task by day. **Calendar** shows the month. **Done** shows what you finished, by day. |
+| Two tabs open | Changes in one tab show up in the other. |
+
+**What it remembers on this device** (localStorage key `todo:v1`):
+- every task: its name, day, place in the day's order, and whether and when it was finished
+- your wrap-up time
+- that onboarding is done
+- whether you dismissed tonight's wrap-up
+- whether the one-time hint is still showing
+
+There are no accounts, so it's this browser on this device only. If saving fails, a banner says so.

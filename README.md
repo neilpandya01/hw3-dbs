@@ -4,28 +4,15 @@ A personal to-do list where every task belongs to a day. Add a task for any day,
 
 Built for Design, Build, Ship (MPCS 51238), Assignment 3: Patterns & Flows.
 
-**Stack:** Next.js and Tailwind CSS. Data is saved in the browser with localStorage, with no database, accounts, or outside services. Deployed on Vercel's Hobby plan.
+**Stack:** Next.js and Tailwind CSS. Data is saved in the browser with localStorage, with no database, accounts, outside services, or extra npm packages. It's built to deploy on Vercel's free Hobby plan.
+
+**Live app:** _not deployed yet, so the Vercel URL goes here_ · **Repo:** [github.com/neilpandya01/hw3-dbs](https://github.com/neilpandya01/hw3-dbs)
 
 ---
 
 ## Flows
 
-### Main task
-
-> **I jot a task for a certain day → it's on that day's list → I check it off → at my wrap-up time, I keep or push what's left; if I don't, it carries into tomorrow under "From earlier."**
-
-```mermaid
-flowchart LR
-  A["Jot a task + pick a day (/add or quick-add)"] -->|error next to field, input kept| A
-  A -->|valid| B["It's on that day's list (highlighted)"]
-  B --> C["Check it off (strikethrough; uncheck to undo)"]
-  C --> D{Past my wrap-up time and tasks left?}
-  D -- No, all done --> E[All clear: plan tomorrow]
-  D -- Yes --> F[Wrap up your day card]
-  F -- Keep for tomorrow / Pick a day / Let it go --> G([Day wrapped])
-  F -- Not now / ignored --> H["Next day: 'From earlier · N' above today's tasks"]
-  H -- Move to today / Pick a day / Check off / Let it go --> B
-```
+There are three flows, each with its own sentence and diagram: the **first visit**, the **main task**, and **coming back**. Their steps, states, and errors are in [flows.md](flows.md).
 
 ### First visit
 
@@ -52,6 +39,43 @@ flowchart LR
 - **From Todoist:** example tasks that show what to type.
 - **Avoided:** Sunsama's long required setup wizard and Todoist's survey about role and industry.
 
+### Main task
+
+> **I jot a task for a certain day → it's on that day's list → I check it off → at my wrap-up time, I keep or push what's left; if I don't, it carries into tomorrow under "From earlier."**
+
+```mermaid
+flowchart LR
+  A["Jot a task + pick a day (/add or quick-add)"] -->|error next to field, input kept| A
+  A -->|valid| B["It's on that day's list (highlighted)"]
+  B --> C["Check it off (strikethrough; uncheck to undo)"]
+  C --> D{Past my wrap-up time and tasks left?}
+  D -- No, all done --> E[All clear: plan tomorrow]
+  D -- Yes --> F[Wrap up your day card]
+  F -- Keep for tomorrow / Pick a day / Let it go --> G([Day wrapped])
+  F -- Not now / ignored --> H["Next day: 'From earlier · N' above today's tasks"]
+  H -- Move to today / Pick a day / Check off / Let it go --> B
+```
+
+### Coming back
+
+> **I come back in the evening → at my wrap-up time Dayplan asks what to do with what's left → I keep it for tomorrow, move it, or let it go → if I skip that, tomorrow it's waiting under "From earlier."**
+
+```mermaid
+flowchart TD
+  A([Come back to Dayplan]) --> B{A new day since my last visit?}
+  B -- No --> C{Past my wrap-up time, with tasks left?}
+  C -- No --> T[Today, exactly as I left it]
+  C -- Yes --> W[Wrap up your day card]
+  W -- Keep for tomorrow / Pick a day / Let it go --> X(["Day wrapped. 4 done today."])
+  W -- Not now --> N[Hidden for tonight · Wrap up now brings it back]
+  B -- Yes --> E{Unfinished tasks from past days?}
+  E -- No --> P[Today, with anything planned for today]
+  E -- Yes --> F["Today with 'From earlier · N' on top"]
+  F -- Move to today / Pick a day / Check off / Let it go --> P
+```
+
+**The reason to return** is a nightly check-in at a time you choose. The **Wrap up your day** card appears at that exact minute. Nothing is ever lost: if you skip it, leftovers wait under **From earlier** until you deal with them. **What it remembers** on this device: every task (its day, its place in that day's order, and whether it's done), your wrap-up time, and that you've finished onboarding.
+
 ### Main task steps
 
 Each arrow in the sentence is a step, and each step has its own page (route) with shared navigation: **Today · At a Glance · Calendar · Done**, plus a **+ Add task** button.
@@ -73,7 +97,10 @@ I worked out this flow with my agent in plan mode. Along the way I made these ch
 - **Leftovers pile up instead of disappearing.** If I skip the wrap-up, unfinished tasks show up in a separate "From earlier" section, and they stay there until I deal with them.
 - **A warning when a task is too similar to one already on that day** (e.g. "Calll mom" when "Call Mom" exists). It's a soft warning: pressing Add again keeps both.
 - **A message at the bottom only when a change is hard to reverse.** Moving or deleting a task shows Undo. Adding, checking off, and renaming happen right in front of you, and you can reverse them in place, so they get no message.
-- **Not included, to keep it simple:** projects, tags, priorities, and recurring tasks.
+- **A required wrap-up time during onboarding,** asked once, in its own step. You can change it later from the strip at the top of every page.
+- **My own order, not alphabetical.** New tasks go last in their day. Dragging the ⠿ handle reranks them, and the order is the same on Today, At a Glance, and the Calendar.
+- **Tab to complete** from tasks I've written before, so repeat tasks are quick to type.
+- **Not included, to keep it simple:** projects, tags, priorities, recurring tasks, and streaks.
 
 The full list of steps, states, and errors is in [flows.md](flows.md).
 
@@ -90,7 +117,7 @@ After onboarding, every page shares the same header. It has three bands, with no
 | Page | Route | What's on it |
 |---|---|---|
 | Welcome | `/welcome` | The first visit: what Dayplan is, your wrap-up time, and your first task |
-| Today | `/` | Quick-add for today, the Wrap up your day card (after your wrap-up time), **From earlier**, and today's list |
+| Today | `/` | Quick-add for today, the Wrap up your day card (after your wrap-up time; **Wrap up now** brings it back if dismissed), **From earlier**, and today's list, which you can drag to reorder |
 | Add a task | `/add` | The form: **Task** and **Day** (Today, Tomorrow, or Pick a day), with errors next to each field. `/add?date=2026-10-23` pre-fills the day. |
 | Calendar | `/calendar` | A compact month grid, from this month forward, with ‹ › arrows and a **Today** button. The selected day is a dark circle, today has a ring, and days with open tasks have a dot. The selected day's tasks sit below under a large heading, since they're the main content. Pick a day to see its tasks below and add more. Clicking a day heading on At a Glance opens that month with the day selected (`/calendar?day=2026-11-04`). Old `/day/...` links redirect here. |
 | At a Glance | `/glance` | Every unfinished task in one place, grouped by day: **From earlier**, **Today**, **Tomorrow**, then each later day. Drag a task by its ⠿ handle to reorder it within a day or drop it on another day. With the keyboard, focus the handle and press ↑ ↓; at the edge of a day it crosses into the next one. Each day has **+ Add task to Tomorrow** (and so on) under its list. It opens a field right there, with Tab to complete. The new task goes to the end of that day, highlighted, without leaving the page. The field closes once the task is added; **Cancel** or Esc closes it without adding. Day headings open that day in the Calendar. Old `/upcoming` links redirect here. |
@@ -98,9 +125,13 @@ After onboarding, every page shares the same header. It has three bands, with no
 
 Every task has an **Edit** button for fixing mistakes: rename it, move it to another day, or delete it. Moves and deletes can be undone from the message at the bottom. The full list of mistakes the app catches is in the human-error audit in [flows.md](flows.md#human-error-audit).
 
-Shared components live in [`src/components`](src/components): `Button`, `Field` and `TextInput` (a label, the input, then its error), `ChoiceChips`, `DayPicker`, `WrapUpTimeField` (used in onboarding and the header editor), `TaskRow`, `Toast` (Undo, for moves and deletes only), `FirstHint`, `TaskEditor`, `ConfirmButton` (asks before bulk deletes), `Nav`, and `EmptyState`.
+Shared components live in [`src/components`](src/components) and are used the same way everywhere:
 
-**Tab to complete:** when you type a task in quick-add or on the Add page, Dayplan looks through every task you've ever written (past, done, or planned). After 2 letters it shows the closest match in grey after your cursor. The hint under the field says *"Press Tab to fill in 'Call Mom'."* Tab, or → at the end of the text, fills it in, and Esc hides it. When there's no match, Tab works as usual.
+- **Form pieces:** `Button`, `Field` and `TextInput` (a label, the input, then its error), `ChoiceChips` (radio pills), `DayPicker`, `WrapUpTimeField` (used in onboarding and the header editor), and `AutocompleteInput` (Tab to complete).
+- **Task pieces:** `TaskRow` (checkbox, name, Edit), `TaskEditor`, `TaskActions` (Pick a day), `ReorderableGroups` (dragging on Today, At a Glance, and Calendar), `InlineAdd`, `QuickAdd`, `FromEarlier`, and `WrapUpCard`.
+- **Page pieces:** `AppHeader`, `Nav`, `PageHeader`, `EmptyState`, `FirstHint`, `Toast` (Undo, for moves and deletes only), `ConfirmButton` (asks before bulk deletes), and `StorageBanner`.
+
+**Tab to complete:** when you type a task in quick-add, on the Add page, or in **+ Add task to {day}** on At a Glance, Dayplan looks through every task you've ever written (past, done, or planned). After 2 letters it shows the closest match in grey after your cursor. The hint under the field says *"Press Tab to fill in 'Call Mom'."* Tab, or → at the end of the text, fills it in, and Esc hides it. When there's no match, Tab works as usual.
 
 **Task order:** tasks in a day are listed in the order you set, never alphabetically. A new task, or one moved to another day, goes to the end of that day. Dragging the ⠿ handle, or pressing ↑ ↓ on it, is the only way to change a task's place. This works on **Today**, **At a Glance**, and the **Calendar**'s selected day. All three read the same saved order, so reordering in one place shows up everywhere immediately. While you drag, the whole card lifts and follows your pointer, and an accent line marks where it will land. Dates more than a year from today show the year, e.g. *Thu, Oct 22, 2027*.
 
@@ -155,6 +186,10 @@ All 20 pairs pass in both modes, for 40 checks in total. **The fix it found:** i
 - Motion is reduced when the system asks for it: the yellow highlight doesn't fade, and scrolling isn't smooth.
 
 **Not checked yet:** a pass with a real screen reader (VoiceOver or NVDA) in a browser.
+
+## First-run check (Step 8)
+
+_Not run yet._ Once the app is live on Vercel, an agent will use it as a brand-new user, with a goal like "Add three things you need this week," then come back later. Its usability feedback, and what I changed because of it, will go here.
 
 ## Run it locally
 

@@ -19,7 +19,9 @@ A day-by-day personal to-do list. Main flow: I jot a task for a certain day → 
 - Days are local `YYYY-MM-DD` keys from `src/lib/dates.ts`. Never use `toISOString()` for a day.
 
 ## Conventions
-- Use the shared components in `src/components` (`Button`, `Field`/`TextInput`, `DayPicker`, `TaskRow`, `Toast`, `EmptyState`, `PageHeader`) rather than one-off markup.
+- Use the shared components in `src/components` rather than one-off markup: `Button`, `Field`/`TextInput`, `ChoiceChips`, `DayPicker`, `AutocompleteInput`, `TaskRow`, `TaskEditor`, `ReorderableGroups`, `InlineAdd`, `Toast`, `ConfirmButton`, `EmptyState`, `PageHeader`.
+- Task order is saved per task (`order` in `src/lib/store.ts`): new and moved tasks go last in their day, never alphabetical. Any list of unfinished tasks that should be rankable uses `ReorderableGroups`, so Today, At a Glance, and Calendar stay in sync.
+- Docs: `README.md` (overview, flows with Mermaid, pages, accessibility, first-run check) and `flows.md` (steps, states, errors per flow). Update both when behavior changes.
 - Form errors sit under their field and say what to do next ("Enter a task name."). Never clear what the person typed on an error.
 - Only changes that are hard to reverse (moving or deleting tasks) show a toast with Undo. Adding, checking off, and renaming are visible and reversible in place, so they get no toast. Bulk deletes ask inline first (`ConfirmButton`).
 - Colors come from the tokens in `src/app/globals.css` (light and dark). Every input has a real `<label>`.
