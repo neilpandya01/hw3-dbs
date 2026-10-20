@@ -8,22 +8,30 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# Project: Dayplan (HW3, Design Build Ship)
+# Dayplan
 
-A day-by-day personal to-do list. Main flow: I jot a task for a certain day → it's on that day's list → I check it off → at my wrap-up time I keep or push what's left; if I don't, it rolls over to tomorrow. See `flows.md`.
+A personal to-do list where every task belongs to a day. At a daily wrap-up time you keep or move what's left; unfinished tasks roll over to the next day. Flows are in `flows.md`.
 
-## Constraints
-- Next.js + Tailwind CSS only. Data lives in localStorage (`src/lib/store.ts`, key `todo:v1`). No database, backend, accounts, external APIs, or extra npm packages (no date, state, or UI libraries).
-- Cache Components is on, so pages you leave are hidden with React `<Activity>`, not unmounted: their state survives. Never leave a button disabled after an action (it stays disabled on return). Reset transient UI (open editors, confirms) with a `useLayoutEffect` cleanup, and key forms that should start fresh on `useRouter().bfcacheId`.
-- Also because of Cache Components: any client component that reads the URL (`usePathname`, `useParams`, `useSearchParams`) must sit inside `<Suspense>`, or the build fails.
-- Days are local `YYYY-MM-DD` keys from `src/lib/dates.ts`. Never use `toISOString()` for a day.
+## Stack and rules
+- Next.js 16 + Tailwind CSS 4. All data is in localStorage. No backend, database, accounts, external APIs, or extra npm packages.
+- Check with `npm run build` and `npm run lint` before committing. Pull first: the README is sometimes edited on GitHub.
 
-## Conventions
-- Use the shared components in `src/components` rather than one-off markup: `Button`, `Field`/`TextInput`, `ChoiceChips`, `DayPicker`, `AutocompleteInput`, `TaskRow`, `TaskEditor`, `ReorderableGroups`, `InlineAdd`, `Toast`, `ConfirmButton`, `EmptyState`, `PageHeader`.
-- Unfinished tasks roll forward: `rollOver(today)` (run by `DayRollover` in the layout) moves any unfinished task dated before today onto today and sets `carriedFrom` to its first planned day. `isCarried`/`fromEarlier` find these. The Today page shows them in a separate yellow "Rolled over" group (`FromEarlier`), while At a Glance and the Calendar pin them at the top of today's list (`pinned` in `ReorderableGroups`). Any real action on a task clears `carriedFrom`: moving, dragging, re-dating, or finishing it. Past calendar days show only what was finished (by `doneAt`).
-- Task order is saved per task (`order` in `src/lib/store.ts`): new and moved tasks go last in their day, never alphabetical. Any list of unfinished tasks that should be rankable uses `ReorderableGroups`, so Today, At a Glance, and Calendar stay in sync.
-- Docs: `README.md` stays short: a basic explanation, the First visit and Main task flow diagrams, and the first-run check (Step 8) findings. Everything else (all three flows including Coming back, steps, states, errors, design decisions) goes in `flows.md`. Update them when behavior changes, and keep README edits made directly on GitHub (pull before editing).
-- Form errors sit under their field and say what to do next ("Enter a task name."). Never clear what the person typed on an error.
-- Only changes that are hard to reverse (moving or deleting tasks) show a toast with Undo. Adding, checking off, and renaming are visible and reversible in place, so they get no toast. Bulk deletes ask inline first (`ConfirmButton`).
-- Colors come from the tokens in `src/app/globals.css` (light and dark). Every input has a real `<label>`.
-- Check with `npm run build` and `npm run lint` before committing.
+## Where things are
+- `src/lib/store.ts`: the only data layer. Key `todo:v1`; `useStore()`; every action (add, toggle, move, place, delete) returns an Undo that restores only the tasks it touched.
+- `src/lib/dates.ts`: local `YYYY-MM-DD` day keys. Never use `toISOString()` for a day.
+- `src/lib/validate.ts`: task errors and soft warnings (similar names, far-future dates). `src/lib/clock.ts`: current day and minute, ticking on the minute.
+- Routes: `/` Today, `/add`, `/glance` At a Glance, `/calendar`, `/done`, `/welcome` onboarding (`?step=time|task`).
+- `src/components`: shared UI. Reuse it instead of one-off markup.
+
+## How it behaves
+- **Onboarding is required.** `OnboardingGate` sends new users to `/welcome`; `/welcome` sends finished users on.
+- **Rollover.** `DayRollover` calls `rollOver(today)`: unfinished past tasks move to today with `carriedFrom` set to their original day. Today shows them in a "Rolled over" group (`FromEarlier`); At a Glance and Calendar pin them at the top of today (`pinned` in `ReorderableGroups`).
+- **Order.** Each task has a saved `order`. New and moved tasks go last in their day, never alphabetical. Rankable lists use `ReorderableGroups` so all three views stay in sync.
+- **Feedback.** Errors sit under their field, say what to do next, and keep what was typed. Toasts with Undo only for moves and deletes. Bulk deletes confirm first (`ConfirmButton`).
+
+## Next.js gotchas here
+- Cache Components is on: pages you leave are hidden (React `<Activity>`), not unmounted. Don't leave buttons disabled after an action. Reset transient UI in a `useLayoutEffect` cleanup.
+- Any client component reading the URL (`usePathname`, `useParams`, `useSearchParams`) must be inside `<Suspense>`, or the build fails.
+
+## Style
+- Colors come from tokens in `src/app/globals.css` (light and dark, contrast-checked). Every input has a real `<label>`; everything works by keyboard.
