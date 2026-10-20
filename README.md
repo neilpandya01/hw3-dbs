@@ -1,11 +1,8 @@
 # Dayplan
 
-A personal to-do list where every task belongs to a day. You add tasks to today or any day ahead and check them off. Each evening, at a wrap-up time you choose, Dayplan asks what to do with anything left. Whatever you skip rolls over to the next day, so nothing gets lost.
+A personal to-do list where every task belongs to a day. You add tasks to today or any day ahead and check them off. At a wrap-up time you choose, Dayplan asks what to do with anything left. Whatever you skip rolls over to the next day, so nothing uncomplete gets lost.
 
-Built for Design, Build, Ship (MPCS 51238), Assignment 3: Patterns & Flows. It's built with Next.js and Tailwind CSS, and everything is saved in the browser with localStorage, with no accounts or database.
-
-- **Live app:** _not deployed yet, so the Vercel URL goes here_
-- **More detail:** [flows.md](flows.md) has each flow's steps, states, and errors. [ACCESSIBILITY.md](ACCESSIBILITY.md) has the Step 7 check.
+It's built with Next.js and Tailwind CSS, and everything is saved in the browser with localStorage, with no accounts or database.
 
 ## Flows
 
@@ -41,7 +38,7 @@ flowchart LR
 
 ### Coming back
 
-> **I come back in the evening → at my wrap-up time Dayplan asks what to do with what's left → I keep it for tomorrow, move it, or let it go → if I skip that, tomorrow it has rolled over to the next day.**
+> **I come back in the evening → at my wrap-up time Dayplan asks what to do with what's left → I keep it for tomorrow, move it, or let it go → if I skip that, tomorrow it has rolled over.**
 
 ```mermaid
 flowchart TD
