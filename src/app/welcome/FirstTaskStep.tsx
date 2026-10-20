@@ -30,29 +30,30 @@ export function FirstTaskStep({
   const titleMessages = { error: draft.errors.title };
 
   return (
-    <>
-      <header className="flex flex-col gap-1">
-        <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-semibold tracking-tight text-ink outline-none">
-          Add your first task
-        </h2>
-        <p className="text-muted">What&rsquo;s one thing you need to do? Tap an example or write your own.</p>
-      </header>
+    <form
+      noValidate
+      className="flex flex-col gap-6"
+      onSubmit={(e) => {
+        e.preventDefault();
+        // A brand-new list has nothing to be similar to, so pass no tasks.
+        const result = draft.submit(date, today, []);
+        if (result.id) {
+          finishOnboarding({ addedTask: true });
+          router.push(addedHref(date, today));
+        } else if (result.errors.title) {
+          input.current?.focus();
+        }
+      }}
+    >
+      {/* Same card as the other steps: heading and fields inside, buttons below. */}
+      <section className="flex flex-col gap-5 rounded-2xl border border-line bg-surface p-5">
+        <div className="flex flex-col gap-1">
+          <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-semibold tracking-tight text-ink outline-none">
+            Add your first task
+          </h2>
+          <p className="text-sm text-muted">Tap an example or write your own.</p>
+        </div>
 
-      <form
-        noValidate
-        className="flex flex-col gap-6 rounded-2xl border border-line bg-surface p-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          // A brand-new list has nothing to be similar to, so pass no tasks.
-          const result = draft.submit(date, today, []);
-          if (result.id) {
-            finishOnboarding({ addedTask: true });
-            router.push(addedHref(date, today));
-          } else if (result.errors.title) {
-            input.current?.focus();
-          }
-        }}
-      >
         <div className="flex flex-col gap-2">
           <p id="examples-label" className="text-sm text-muted">
             Examples
@@ -94,7 +95,7 @@ export function FirstTaskStep({
           picked={day.picked}
           today={today}
           error={draft.errors.date}
-        warning={draft.dateWarning}
+          warning={draft.dateWarning}
           hint="Nothing for today? Choose Tomorrow or pick another day."
           onChoice={(choice) => {
             setDay((d) => ({ ...d, choice }));
@@ -105,32 +106,32 @@ export function FirstTaskStep({
             draft.changeDay();
           }}
         />
+      </section>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <Button type="submit">Add to my list</Button>
-          <Button variant="secondary" onClick={onBack}>
-            Back
-          </Button>
-          <Button
-            variant="ghost"
-            className="sm:ml-auto"
-            onClick={() => {
-              // Don't silently throw away something they typed: say so once, then skip.
-              if (draft.title.trim() && !skipWarned) return setSkipWarned(true);
-              finishOnboarding({ addedTask: false });
-              router.push("/");
-            }}
-          >
-            I&rsquo;ll add tasks later
-          </Button>
-        </div>
-        {skipWarned && draft.title.trim() && (
-          <p role="status" className="rounded-lg bg-warn-soft px-3 py-2 text-sm text-warn">
-            &ldquo;{draft.title.trim()}&rdquo; isn&rsquo;t saved yet. Press Add to my list to keep it, or I&rsquo;ll add
-            tasks later again to skip it.
-          </p>
-        )}
-      </form>
-    </>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <Button type="submit">Add to my list</Button>
+        <Button variant="secondary" onClick={onBack}>
+          Back
+        </Button>
+        <Button
+          variant="ghost"
+          className="sm:ml-auto"
+          onClick={() => {
+            // Don't silently throw away something they typed: say so once, then skip.
+            if (draft.title.trim() && !skipWarned) return setSkipWarned(true);
+            finishOnboarding({ addedTask: false });
+            router.push("/");
+          }}
+        >
+          I&rsquo;ll add tasks later
+        </Button>
+      </div>
+      {skipWarned && draft.title.trim() && (
+        <p role="status" className="rounded-lg bg-warn-soft px-3 py-2 text-sm text-warn">
+          &ldquo;{draft.title.trim()}&rdquo; isn&rsquo;t saved yet. Press Add to my list to keep it, or I&rsquo;ll add
+          tasks later again to skip it.
+        </p>
+      )}
+    </form>
   );
 }

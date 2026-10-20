@@ -90,16 +90,17 @@ flowchart LR
 
 ## First visit (onboarding)
 
-> **I open Dayplan with nothing saved → it tells me what it's for and asks when I'm usually done for the day → I add my first task by tapping an example, for today or another day → I land on Today (or At a Glance, for a later day), with a one-time hint on how it works.**
+> **I open Dayplan with nothing saved → I read what it's for → I set when I'm usually done for the day → I add my first task by tapping an example, for today or another day → I land on Today (or At a Glance, for a later day), with a one-time hint on how it works.**
 
 ```mermaid
 flowchart TD
   A([Open Dayplan]) --> B{Anything saved?}
   B -- Yes --> T[Today]
-  B -- No --> W1["/welcome step 1 of 2: what Dayplan does + 'When are you usually done with tasks for the day?'"]
+  B -- No --> W0["/welcome step 1 of 3: overview, what Dayplan is and how it works"]
+  W0 -- Get started --> W1["Step 2 of 3: When do you wrap up?"]
+  W1 -- Back --> W0
   W1 -- error next to the question --> W1
-  W1 -- Skip: keep 6 PM --> W2
-  W1 -- Continue: time saved --> W2["Step 2 of 2: Add your first task (tap an example or type)"]
+  W1 -- Continue: time saved --> W2["Step 3 of 3: Add your first task (tap an example or type)"]
   W2 -- Back --> W1
   W2 -- error next to field, input kept --> W2
   W2 -- "I'll add tasks later" --> T
@@ -111,17 +112,17 @@ flowchart TD
 
 | Step | Page | What happens |
 |---|---|---|
-| 1. Say what it is and ask the one question | `/welcome` | The page heading is **"Welcome to Dayplan"**, then *Step 1 of 2*. The step headline is **"Plan your tasks day by day."** Below it are three numbered lines: add tasks to any day, check them off, and keep or move what's left at the end of the day. Then comes the line *"Saved on this device. No account needed."* The question is **"When are you usually done with tasks for the day?"**, with 5–9 PM chips or **Other time**. |
-| 2. Add a first task by example | `/welcome` (same page, step 2) | Example chips (**+ Reply to emails**, **+ Do laundry**, …) fill in the Task field. The Day field offers Today, Tomorrow, or Pick a day, with the note *"Nothing for today? Choose Tomorrow or pick another day."* |
-| 3. Land on the list | `/` for today, `/glance` for a later day | The new task is highlighted light yellow. A **"You're set up"** hint explains checking off, the wrap-up time, and From earlier. It goes away after the first check-off or **Got it**. |
+| 1. Read the overview | `/welcome` | The page heading is **"Welcome to Dayplan"**, then *Step 1 of 3*. The card says **"Plan your tasks day by day."** with three numbered lines: add tasks to any day, check them off, and keep or move what's left at the end of the day. A note says *"Saved on this device. No account needed."* Then **Get started**. |
+| 2. Add the time you wrap up | `/welcome` (step 2 of 3) | The question is asked once, as the heading **"When do you wrap up?"**, followed by 5–9 PM pills or **Other time**. The hint says *"At this time every day, Dayplan helps you wrap up. You can always change it later."* The buttons are **Continue** and **Back**. There's no Skip: everyone sets a wrap-up time. |
+| 3. Add a first task by example | `/welcome` (step 3 of 3) | Example chips (**+ Reply to emails**, **+ Do laundry**, …) fill in the Task field. The Day field offers Today, Tomorrow, or Pick a day, with the note *"Nothing for today? Choose Tomorrow or pick another day."* |
+| After onboarding: land on the list | `/` for today, `/glance` for a later day | The new task is highlighted light yellow. A **"You're set up"** hint explains checking off, the wrap-up time, and From earlier. It goes away after the first check-off or **Got it**. |
 
 **States**
 
 | State | What shows |
 |---|---|
 | Nothing saved | Opening `/` sends you to `/welcome`, with a skeleton while it loads (never an empty list). The app name and navigation bar stay hidden until onboarding is finished, so the only choices are the welcome steps. |
-| Wrap-up time answered, then reload | It picks up again at step 2, because the time saves the moment you answer. |
-| Skipped step 1 | The wrap-up time is 6 PM, and you still go on to step 2 to add a first task. The question's hint says *"At this time every day, Dayplan helps you wrap up. You can always change it later."* |
+| Wrap-up time answered, then reload | It picks up again at step 3, because the time saves the moment you answer. |
 | First task added after the wrap-up time | The hint and the wrap-up card both show. |
 | Opening `/welcome` again later | It works as a way to redo setup, with your saved time already chosen. |
 

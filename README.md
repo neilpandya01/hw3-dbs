@@ -29,19 +29,20 @@ flowchart LR
 
 ### First visit
 
-Someone with nothing saved is sent to `/welcome`. The page opens with **Welcome to Dayplan** and has two short steps:
+Someone with nothing saved is sent to `/welcome`. The page opens with **Welcome to Dayplan** and goes **read the overview → add the time you wrap up → add your first task**:
 
-1. **What Dayplan is, plus one question.** It says *"Plan your tasks day by day,"* explains how it works in three numbered lines, and notes that everything is saved on this device. Then it asks: **"When are you usually done with tasks for the day?"** That answer sets the nightly wrap-up time. **Skip** keeps the 6 PM default and still moves on to step 2.
-2. **Add your first task by example.** Tap an example such as *+ Do laundry* or type your own. Put it on **Today**, or, if there's nothing for today, on **Tomorrow** or another day.
+1. **Read the overview.** *"Plan your tasks day by day."* Three numbered lines explain how it works, and a note says everything is saved on this device. Then **Get started**.
+2. **Add the time you wrap up.** *"When do you wrap up?"* Pick 5–9 PM or **Other time**. That answer sets the nightly wrap-up time for every day. It has to be answered to go on: pressing Continue with nothing picked shows *"Pick the time you usually finish for the day."* **Back** returns to the overview.
+3. **Add your first task by example.** Tap an example such as *+ Do laundry* or type your own. Put it on **Today**, or, if there's nothing for today, on **Tomorrow** or another day.
 
 The app name and navigation bar stay hidden until onboarding is finished. You then land on Today, or At a Glance for a later day, with your new task highlighted light yellow, plus a one-time hint about checking it off and the wrap-up. There's no tour and no empty screen.
 
 ```mermaid
 flowchart LR
-  A([Nothing saved]) --> B["What Dayplan is + when are you done for the day?"]
-  B --> C["Add your first task (tap an example), for today or another day"]
+  A([Nothing saved]) --> O["1 · Read the overview"]
+  O -- Get started --> B["2 · When do you wrap up?"]
+  B --> C["3 · Add your first task (tap an example), for today or another day"]
   C --> D["That day's list + one-time hint"]
-  B -. Skip: keep 6 PM .-> C
   C -. later .-> E[Today]
 ```
 

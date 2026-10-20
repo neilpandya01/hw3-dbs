@@ -61,17 +61,20 @@ export function useWrapUpTime(saved: string | null, button: string) {
 export function WrapUpTimeField({
   id,
   legend,
+  hideLegend,
   hint,
   state,
 }: {
   id: string;
   legend: ReactNode;
+  /** When a visible heading already asks the question, keep the legend for screen readers only. */
+  hideLegend?: boolean;
   hint?: ReactNode;
   state: ReturnType<typeof useWrapUpTime>;
 }) {
   return (
     <fieldset className="flex flex-col gap-1.5" aria-describedby={describedBy(id, { error: state.error, hint })}>
-      <legend className="mb-1.5 font-medium text-ink">{legend}</legend>
+      <legend className={hideLegend ? "sr-only" : "mb-1.5 font-medium text-ink"}>{legend}</legend>
       {hint && (
         <p id={`${id}-hint`} className="mb-1 text-sm text-muted">
           {hint}
