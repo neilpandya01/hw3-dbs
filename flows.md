@@ -6,7 +6,7 @@ Dayplan is built around three flows. Each one has a one-sentence summary and a d
 2. **[Main task](#main-task-one-sentence):** add a task for a day → it's on that day's list → check it off → wrap up what's left.
 3. **[Coming back](#coming-back-it-remembers):** the wrap-up check-in at your time, and leftovers waiting under From earlier.
 
-After those come the shared details: [Tab to complete](#tab-to-complete), [ordering and dragging](#ordering-and-dragging-today-at-a-glance-calendar), and the [human-error audit](#human-error-audit).
+After those come the shared details: [Tab to complete](#tab-to-complete), [ordering and dragging](#ordering-and-dragging-today-at-a-glance-calendar), the [human-error audit](#human-error-audit), and the [design decisions](#design-decisions) behind it all.
 
 ## Main task (one sentence)
 
@@ -225,3 +225,26 @@ flowchart TD
 - whether the one-time hint is still showing
 
 There are no accounts, so it's this browser on this device only. If saving fails, a banner says so.
+
+## Design decisions
+
+### What I kept from planning with the agent
+
+I worked out this flow with my agent in plan mode. Along the way I made these choices:
+
+- **Every task belongs to a day,** not just "today" or "someday." I can plan Thursday's dentist call on Monday.
+- **A nightly check-in at a time I choose.** This is the reason to come back each evening.
+- **Leftovers pile up instead of disappearing.** If I skip the wrap-up, unfinished tasks show up in a separate "From earlier" section, and they stay there until I deal with them.
+- **A warning when a task is too similar to one already on that day** (e.g. "Calll mom" when "Call Mom" exists). It's a soft warning: pressing Add again keeps both.
+- **A message at the bottom only when a change is hard to reverse.** Moving or deleting a task shows Undo. Adding, checking off, and renaming happen right in front of you, and you can reverse them in place, so they get no message.
+- **A required wrap-up time during onboarding,** asked once, in its own step. You can change it later from the strip at the top of every page.
+- **My own order, not alphabetical.** New tasks go last in their day. Dragging the ⠿ handle reranks them, and the order is the same on Today, At a Glance, and the Calendar.
+- **Tab to complete** from tasks I've written before, so repeat tasks are quick to type.
+- **Not included, to keep it simple:** projects, tags, priorities, recurring tasks, and streaks.
+
+### What I took from the onboarding research (Sunsama, Tweek, Todoist)
+
+- **From Tweek:** open onto something useful right away, with no account, and teach by doing.
+- **From Sunsama:** ask when you finish your day, because that time drives the evening wrap-up.
+- **From Todoist:** example tasks that show what to type.
+- **Avoided:** Sunsama's long required setup wizard and Todoist's survey about role and industry.
