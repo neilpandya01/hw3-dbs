@@ -9,7 +9,7 @@ Dayplan's three flows: the first visit, the main task, and coming back.
 ```mermaid
 flowchart TD
   A([Open Dayplan]) --> B{Anything saved?}
-  B -- Yes --> T[Today]
+  B -- Yes --> T[Today, no onboarding]
   B -- No --> W0["/welcome step 1 of 3: overview, what Dayplan is and how it works"]
   W0 -- Get started --> W1["Step 2 of 3: When do you wrap up?"]
   W1 -- Back --> W0
@@ -17,11 +17,9 @@ flowchart TD
   W1 -- Continue: time saved --> W2["Step 3 of 3: Add your first task (tap an example or type)"]
   W2 -- Back --> W1
   W2 -- error next to field, input kept --> W2
-  W2 -- "I'll add tasks later" --> T
-  W2 -- Add, for Today --> T
-  W2 -- Add, for Tomorrow or another day --> D["That day's list"]
-  T --> H[One-time hint: check it off, wrap-up time, rollover]
-  D --> H
+  W2 -- "I'll add tasks later" --> E[Today, no hint]
+  W2 -- Add, for Today --> H[Today + one-time hint]
+  W2 -- Add, for Tomorrow or another day --> D[At a Glance + one-time hint]
 ```
 
 ## Main task

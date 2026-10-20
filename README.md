@@ -16,7 +16,7 @@ flowchart LR
   O -- Get started --> B["2 · When do you wrap up?"]
   B --> C["3 · Add your first task (tap an example), for today or another day"]
   C --> D["That day's list + one-time hint"]
-  C -. later .-> E[Today]
+  C -. later .-> E[Today, no hint]
 ```
 
 ### Main task
