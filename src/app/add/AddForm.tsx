@@ -4,7 +4,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 import { Button, ButtonLink } from "@/components/Button";
 import { DayPicker, resolveDay, type DayChoice } from "@/components/DayPicker";
-import { describedBy, Field, TextInput } from "@/components/Field";
+import { AutocompleteInput, useAutocomplete } from "@/components/Autocomplete";
+import { describedBy, Field } from "@/components/Field";
 import { ListSkeleton } from "@/components/Page";
 import { useTaskDraft } from "@/components/useTaskDraft";
 import { useClock } from "@/lib/clock";
@@ -38,10 +39,11 @@ function Form({ today, preset, tasks }: { today: string; preset: string | null; 
   const formRef = useRef<HTMLFormElement>(null);
   const date = resolveDay(choice, picked, today);
   const length = draft.title.trim().length;
+  const complete = useAutocomplete(draft.title, tasks);
   const titleMessages = {
     error: draft.errors.title,
     warning: draft.warning?.message,
-    hint: length > MAX_TITLE - 20 ? `${length} of ${MAX_TITLE} characters` : undefined,
+    hint: complete.hint ?? (length > MAX_TITLE - 20 ? `${length} of ${MAX_TITLE} characters` : undefined),
   };
 
   return (
@@ -67,9 +69,12 @@ function Form({ today, preset, tasks }: { today: string; preset: string | null; 
       }}
     >
       <Field id="title" label="Task" {...titleMessages}>
-        <TextInput
+        <AutocompleteInput
           ref={titleRef}
           id="title"
+          suggestion={complete.suggestion}
+          onAccept={draft.changeTitle}
+          onDismiss={complete.dismiss}
           autoFocus
           autoComplete="off"
           placeholder="e.g. Call the dentist"

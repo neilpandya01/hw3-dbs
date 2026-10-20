@@ -3,15 +3,26 @@
 import { useSyncExternalStore } from "react";
 import { todayKey } from "./dates";
 
-// The current day and minute, re-read every 30 seconds so the list rolls over
-// at midnight and the wrap-up card appears on time without a reload.
+// The current day and minute. It ticks right on each minute boundary, so the wrap-up
+// card appears at the wrap-up time exactly and the list rolls over at midnight,
+// without a reload. Returning to the tab re-reads it at once, since browsers slow
+// down timers in background tabs.
 
 function subscribe(listener: () => void) {
-  const timer = setInterval(listener, 30_000);
+  let timer: ReturnType<typeof setTimeout>;
+  const tick = () => {
+    listener();
+    timer = setTimeout(tick, 60_000 - (Date.now() % 60_000) + 20); // +20ms: land just past :00
+  };
+  timer = setTimeout(tick, 60_000 - (Date.now() % 60_000) + 20);
+
+  const onVisible = () => document.visibilityState === "visible" && listener();
   window.addEventListener("focus", listener);
+  document.addEventListener("visibilitychange", onVisible);
   return () => {
-    clearInterval(timer);
+    clearTimeout(timer);
     window.removeEventListener("focus", listener);
+    document.removeEventListener("visibilitychange", onVisible);
   };
 }
 

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 const tabs = [
   { href: "/", label: "Today", match: (p: string) => p === "/" },
-  { href: "/upcoming", label: "Upcoming", match: (p: string) => p === "/upcoming" },
+  { href: "/glance", label: "At a Glance", match: (p: string) => p === "/glance" },
   { href: "/calendar", label: "Calendar", match: (p: string) => p === "/calendar" },
   { href: "/done", label: "Done", match: (p: string) => p === "/done" },
 ];

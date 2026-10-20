@@ -37,8 +37,9 @@ export function daysBetween(from: string, to: string): number {
   return Math.round(ms / 86_400_000);
 }
 
-/** "Thu, Oct 23" */
+/** "Thu, Oct 23", or "Thu, Oct 22, 2027" when the day is more than a year from today. */
 export function formatDay(key: string): string {
+  if (Math.abs(daysBetween(todayKey(), key)) > 365) return formatLongDay(key);
   return fromKey(key)!.toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
@@ -89,9 +90,9 @@ export function minutesOf(hhmm: string): number {
   return h * 60 + m;
 }
 
-/** Where to land after adding a task: Today for today, Upcoming for any later day. */
+/** Where to land after adding a task: Today for today, At a Glance for any later day. */
 export function addedHref(key: string, today: string): string {
-  return key === today ? "/" : "/upcoming";
+  return key === today ? "/" : "/glance";
 }
 
 /** Where a day's list lives: today is the home page; any other day opens in the calendar. */

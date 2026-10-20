@@ -123,7 +123,7 @@ export function TaskEditor({ task, onClose }: { task: Task; onClose: () => void 
           setDateWarning(undefined);
         }}
       />
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 border-t border-line pt-4">
         <Button type="submit">Save</Button>
         <Button variant="secondary" onClick={onClose}>
           Cancel

@@ -11,12 +11,12 @@
 | # | Step | Page | What happens |
 |---|---|---|---|
 | 1 | **Jot a task for a day** | `/add` (plus quick-add on `/`) | The form has **Task** (required) and **Day** (required). Day has quick buttons for Today and Tomorrow, plus a **Pick a day** date input. Today is the default. Quick-add on `/` skips the form and puts the task on today. |
-| 2 | **It's on that day's list** | `/` for today, `/upcoming` for any later day | A task for today lands you on **Today**. A task for a later day lands you on **Upcoming**, under its day. Either way the new task turns **light yellow for a few seconds**. If the list is long enough that the task landed off screen, the page scrolls to put it in the middle. Screen readers hear *"Added 'Dentist call' to Thu, Oct 23."* No message is needed, and **Edit → Delete task** removes it if it was a mistake. |
+| 2 | **It's on that day's list** | `/` for today, `/glance` for any later day | A task for today lands you on **Today**. A task for a later day lands you on **At a Glance**, under its day. Either way the new task turns **light yellow for a few seconds**. If the list is long enough that the task landed off screen, the page scrolls to put it in the middle. Screen readers hear *"Added 'Dentist call' to Thu, Oct 23."* No message is needed, and **Edit → Delete task** removes it if it was a mistake. |
 | 3 | **Check it off** | the same list | Checking the box (or pressing Space on it) strikes the task through and moves it below unfinished tasks. Unchecking reverses it, so there is no message. |
 | 4 | **Wrap up: keep or push** | `/` | After your wrap-up time, a **Wrap up your day** card lists what's left. Each task has **Keep for tomorrow**, **Pick a day**, and **Let it go** buttons. **Move all to tomorrow** handles everything at once, and **Not now** hides the card for tonight. |
 | 5 | **Otherwise, carry forward** | `/` the next day | Unfinished tasks from past days appear in a **From earlier · N** section above today's tasks, each with its age (*"from Mon"*). They keep piling up until you check them off, move them to today, pick a day, or let them go. |
 
-**Shared nav:** `Today · Upcoming · Calendar · Done` plus a **+ Add task** button. Each page heading names its day, e.g. "Today · Sun, Oct 19".
+**Shared nav:** `Today · At a Glance · Calendar · Done` plus a **+ Add task** button. Each page heading names its day, e.g. "Today · Sun, Oct 19".
 
 ---
 
@@ -32,9 +32,9 @@
 | 2 | **Day with tasks** | Unfinished tasks first, finished ones struck through below. |
 | 2 | **Empty day** | *"Nothing planned for Thu, Oct 23."* with an **Add a task for this day** button. |
 | 3 | **Just checked** | Strikethrough. Uncheck to reverse. |
-| 3 | **All done for the day** | *"All clear for today."* with **Plan tomorrow** and **See upcoming** buttons. Not a dead end. |
+| 3 | **All done for the day** | *"All clear for today."* with **Plan tomorrow** and **See all tasks** buttons. Not a dead end. |
 | 4 | **Before wrap-up time** | A normal list. A thin strip at the very top of every page reads *☾ Your day wraps up at 7 PM · Change*. **Change** opens the same time question as onboarding. There is one wrap-up time for all days, so changing it affects every day. |
-| 4 | **Wrap-up due** | The Wrap up your day card at the top of the list. |
+| 4 | **Wrap-up due** | The Wrap up your day card at the top of the list. It appears at the wrap-up minute exactly: the clock ticks on each minute boundary and re-checks when you come back to the tab. |
 | 4 | **Wrap-up dismissed** | No card tonight. Tasks are unchanged. |
 | 4 | **Day wrapped** | *"Day wrapped. 4 done today."* |
 | 5 | **From earlier present** | A separate section with a count, each task's age, and **Move all to today** / **Clear all** buttons (with Undo). |
@@ -90,7 +90,7 @@ flowchart LR
 
 ## First visit (onboarding)
 
-> **I open Dayplan with nothing saved → it tells me what it's for and asks when I'm usually done for the day → I add my first task by tapping an example, for today or another day → I land on Today (or Upcoming, for a later day), with a one-time hint on how it works.**
+> **I open Dayplan with nothing saved → it tells me what it's for and asks when I'm usually done for the day → I add my first task by tapping an example, for today or another day → I land on Today (or At a Glance, for a later day), with a one-time hint on how it works.**
 
 ```mermaid
 flowchart TD
@@ -113,7 +113,7 @@ flowchart TD
 |---|---|---|
 | 1. Say what it is and ask the one question | `/welcome` | The headline is **"Plan your tasks day by day."** Below it are three numbered lines: add tasks to any day, check them off, and keep or move what's left at the end of the day. Then comes the line *"Saved on this device. No account needed."* The question is **"When are you usually done with tasks for the day?"**, with 5–9 PM chips or **Other time**. |
 | 2. Add a first task by example | `/welcome` (same page, step 2) | Example chips (**+ Reply to emails**, **+ Do laundry**, …) fill in the Task field. The Day field offers Today, Tomorrow, or Pick a day, with the note *"Nothing for today? Choose Tomorrow or pick another day."* |
-| 3. Land on the list | `/` for today, `/upcoming` for a later day | The new task is highlighted light yellow. A **"You're set up"** hint explains checking off, the wrap-up time, and From earlier. It goes away after the first check-off or **Got it**. |
+| 3. Land on the list | `/` for today, `/glance` for a later day | The new task is highlighted light yellow. A **"You're set up"** hint explains checking off, the wrap-up time, and From earlier. It goes away after the first check-off or **Got it**. |
 
 **States**
 
@@ -122,7 +122,7 @@ flowchart TD
 | Nothing saved | Opening `/` sends you to `/welcome`, with a skeleton while it loads (never an empty list). The app name and navigation bar stay hidden until onboarding is finished, so the only choices are the welcome steps. |
 | Wrap-up time answered, then reload | It picks up again at step 2, because the time saves the moment you answer. |
 | Skipped setup | The wrap-up time is 6 PM and you land on Today's empty state: *"Nothing on today's list yet."* |
-| First task added late in the evening | The hint shows first. The wrap-up card waits until you dismiss the hint. |
+| First task added after the wrap-up time | The hint and the wrap-up card both show. |
 | Opening `/welcome` again later | It works as a way to redo setup, with your saved time already chosen. |
 
 **Errors**
@@ -134,6 +134,31 @@ flowchart TD
 | A time before 4 PM | **"2 PM seems too early. Press Continue again to confirm."** This is a soft warning. In the header editor the button is Save, so it says *"Press Save again to confirm."* |
 | An empty first task | **"Enter a task name."** The day you picked is kept. |
 | A past date chosen with Pick a day | **"Pick today or a later day."** |
+
+## Tab to complete
+
+| Situation | What happens |
+|---|---|
+| You've typed 2+ letters that start an earlier task's name | The rest of the name shows in grey inside the field. The hint underneath reads **"Press Tab to fill in 'Call Mom'."** |
+| Several earlier tasks match | The one used most often wins, then the most recent. Matching ignores case. |
+| Tab, or → at the end of the text | Fills in the full name. You can keep typing or press Add. |
+| Esc | Hides the suggestion for what you've typed so far. |
+| No match | No grey text and no hint, and Tab moves focus as usual. |
+
+## Ordering and dragging (Today, At a Glance, Calendar)
+
+| Action | What happens |
+|---|---|
+| Add a task | It goes to the **end** of its day. Tasks are never sorted alphabetically. |
+| Move a task to another day (Edit, Pick a day, Move all) | It goes to the end of that day. |
+| Drag ⠿ within a day | The card lifts, with a shadow and outline, and moves with your pointer. An accent line shows where it will land, and dropping saves that exact order. You can drag on **Today** (unfinished tasks), **At a Glance** (every day), and the **Calendar**'s selected day, from today onward. All three use the same saved order, so a change in one shows in the others. |
+| Drag ⠿ onto another day | It moves to that day, at the spot shown. Today and Tomorrow are always there as drop targets, even when empty (*"Nothing yet. Drag a task here."*). |
+| Drag from **From earlier** | You can drag it into Today or any later day. Nothing can be dropped into From earlier, because those days are past. |
+| Keyboard: focus ⠿, press ↑ / ↓ | It moves one slot. At the top or bottom of a day it crosses into the previous or next day. Focus stays on the handle, and screen readers hear *"Moved 'Gym' to position 2 on Tomorrow."* |
+| **+ Add task to {day}** under a day | It opens a field in place. Adding puts the task at the end of that day, highlighted yellow, and the field closes. **Cancel** or Esc closes it without adding. Errors such as an empty name or a too-similar task show under that field. |
+| Dragging near the top or bottom of the screen | The page scrolls so you can reach other days. |
+
+There's no Undo message for drags. The result is right in front of you, and you can drag it back.
 
 ## Human-error audit
 

@@ -5,7 +5,10 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   // Single-day pages were replaced by the calendar; keep old links working.
   async redirects() {
-    return [{ source: "/day/:date", destination: "/calendar?day=:date", permanent: true }];
+    return [
+      { source: "/day/:date", destination: "/calendar?day=:date", permanent: true },
+      { source: "/upcoming", destination: "/glance", permanent: true },
+    ];
   },
   partialPrefetching: true,
   turbopack: {

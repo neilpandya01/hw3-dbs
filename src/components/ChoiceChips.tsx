@@ -1,6 +1,10 @@
 "use client";
 
-/** A row of pill-shaped choices that are real radio buttons underneath (arrow keys work). */
+/**
+ * A row of pill-shaped choices that are real radio buttons underneath (arrow keys work).
+ * Styled as options, not actions: smaller than buttons, and the chosen one is tinted with a ✓
+ * rather than filled solid, so it never looks like Save or Add.
+ */
 export function ChoiceChips<T extends string>({
   name,
   options,
@@ -24,7 +28,10 @@ export function ChoiceChips<T extends string>({
             onChange={() => onChange(o.value)}
             className="peer sr-only"
           />
-          <span className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-line bg-surface px-4 text-sm font-medium text-ink peer-checked:border-accent peer-checked:bg-accent peer-checked:text-accent-ink peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent">
+          <span className="inline-flex min-h-9 cursor-pointer items-center gap-1 rounded-full border border-line bg-surface px-3.5 text-sm text-muted hover:border-accent hover:text-ink peer-checked:border-accent peer-checked:bg-accent-soft peer-checked:font-semibold peer-checked:text-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent [&>.check]:hidden peer-checked:[&>.check]:inline">
+            <span aria-hidden="true" className="check">
+              ✓
+            </span>
             {o.label}
           </span>
         </label>

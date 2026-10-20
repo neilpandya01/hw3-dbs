@@ -8,17 +8,23 @@ import { TaskEditor } from "./TaskEditor";
 /**
  * One task: a square checkbox labeled by the task name, an Edit button, plus optional meta and actions.
  * `highlight` marks a task that was just added: light yellow for a few seconds, scrolled to the middle of the screen.
+ * `handle` is a drag handle shown before the checkbox. `dragOffset` is set while the card is being carried:
+ * the card lifts (shadow, outline) and moves with the pointer by that many pixels.
  */
 export function TaskRow({
   task,
   meta,
   actions,
   highlight,
+  handle,
+  dragOffset,
 }: {
   task: Task;
   meta?: ReactNode;
   actions?: ReactNode;
   highlight?: boolean;
+  handle?: ReactNode;
+  dragOffset?: number;
 }) {
   const [editing, setEditing] = useState(false);
   const editButton = useRef<HTMLButtonElement>(null);
@@ -57,11 +63,16 @@ export function TaskRow({
   return (
     <li
       ref={row}
-      className={`flex flex-col gap-2 rounded-xl border border-line bg-surface px-3 py-2.5 ${
+      data-row-id={task.id}
+      style={dragOffset === undefined ? undefined : { transform: `translateY(${dragOffset}px) scale(1.02)` }}
+      className={`flex flex-col gap-2 rounded-xl border bg-surface px-3 py-2.5 ${
+        dragOffset === undefined ? "border-line" : "relative z-20 border-accent shadow-xl"
+      } ${
         highlight ? "just-added" : ""
       }`}
     >
       <div className="flex items-start gap-3">
+        {handle}
         <input
           id={id}
           type="checkbox"

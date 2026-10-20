@@ -14,6 +14,12 @@ export type Task = {
   done: boolean;
   doneAt?: string;
   createdAt: string;
+  /**
+   * Position within its day: lower comes first. New and moved tasks get the current time,
+   * which is always larger than any earlier value, so they land at the end of the day.
+   * Dragging renumbers a day 0, 1, 2… Missing on older data: falls back to createdAt.
+   */
+  order?: number;
 };
 
 export type Data = {
@@ -143,7 +149,8 @@ function snapshotTasks(): Undo {
 export function addTask(title: string, date: string): { id: string; undo: Undo } {
   const undo = snapshotTasks();
   const id = crypto.randomUUID();
-  const task: Task = { id, title: title.trim(), date, done: false, createdAt: new Date().toISOString() };
+  const now = new Date();
+  const task: Task = { id, title: title.trim(), date, done: false, createdAt: now.toISOString(), order: now.getTime() };
   updateTasks((tasks) => [...tasks, task]);
   snapshot = { ...getSnapshot(), lastAddedId: id };
   emit();
@@ -170,14 +177,42 @@ export function toggleTask(id: string): Undo {
 
 export function moveTasks(ids: string[], date: string): Undo {
   const undo = snapshotTasks();
-  updateTasks((tasks) => tasks.map((t) => (ids.includes(t.id) ? { ...t, date } : t)));
+  const now = Date.now();
+  // Moved tasks go to the end of their new day, keeping their order among themselves.
+  updateTasks((tasks) =>
+    tasks.map((t) => (ids.includes(t.id) ? { ...t, date, order: now + ids.indexOf(t.id) } : t)),
+  );
   return undo;
 }
 
 export function updateTask(id: string, patch: { title: string; date: string }): Undo {
   const undo = snapshotTasks();
-  updateTasks((tasks) => tasks.map((t) => (t.id === id ? { ...t, title: patch.title.trim(), date: patch.date } : t)));
+  updateTasks((tasks) =>
+    tasks.map((t) =>
+      t.id !== id
+        ? t
+        : { ...t, title: patch.title.trim(), date: patch.date, order: patch.date === t.date ? t.order : Date.now() },
+    ),
+  );
   return undo;
+}
+
+/**
+ * Drag-and-drop (or arrow keys): put a task at `index` among the unfinished tasks of `date`,
+ * then renumber that day 0, 1, 2… so the order is saved exactly as shown.
+ */
+export function placeTask(id: string, date: string, index: number) {
+  update((d) => {
+    const task = d.tasks.find((t) => t.id === id);
+    if (!task) return d;
+    const day = sortForList(d.tasks.filter((t) => t.date === date && !t.done && t.id !== id));
+    day.splice(Math.max(0, Math.min(index, day.length)), 0, { ...task, date });
+    const position = new Map(day.map((t, i) => [t.id, i]));
+    return {
+      ...d,
+      tasks: d.tasks.map((t) => (position.has(t.id) ? { ...t, date, order: position.get(t.id)! } : t)),
+    };
+  });
 }
 
 export function deleteTasks(ids: string[]): Undo {
@@ -230,9 +265,14 @@ export function wrapUpTime(data: Data): string {
   return data.settings.wrapUpTime ?? DEFAULT_WRAP_UP;
 }
 
-/** Unfinished first (oldest added first), then finished (most recent first). */
+/** A task's place in its day: its saved order, or when it was added for older data. */
+function rank(t: Task): number {
+  return t.order ?? Date.parse(t.createdAt);
+}
+
+/** Unfinished first, in their saved order (new ones last; never alphabetical), then finished. */
 export function sortForList(tasks: Task[]): Task[] {
-  const open = tasks.filter((t) => !t.done).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const open = tasks.filter((t) => !t.done).sort((a, b) => rank(a) - rank(b));
   const done = tasks.filter((t) => t.done).sort((a, b) => (b.doneAt ?? "").localeCompare(a.doneAt ?? ""));
   return [...open, ...done];
 }
@@ -245,7 +285,7 @@ export function tasksOn(data: Data, day: string): Task[] {
 export function fromEarlier(data: Data, today: string): Task[] {
   return data.tasks
     .filter((t) => !t.done && t.date < today)
-    .sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt));
+    .sort((a, b) => a.date.localeCompare(b.date) || rank(a) - rank(b));
 }
 
 export function doneOn(data: Data, day: string): number {

@@ -8,6 +8,7 @@ import { FirstHint } from "@/components/FirstHint";
 import { FromEarlier } from "@/components/FromEarlier";
 import { EmptyState, ListSkeleton, PageHeader, Section } from "@/components/Page";
 import { QuickAdd } from "@/components/QuickAdd";
+import { ReorderableGroups } from "@/components/ReorderableGroups";
 import { WrapUpCard } from "@/components/WrapUpCard";
 import { useClock } from "@/lib/clock";
 import { addDays, formatDay, minutesOf } from "@/lib/dates";
@@ -32,14 +33,14 @@ export function TodayView() {
   const earlier = fromEarlier(data, today);
   const todays = tasksOn(data, today);
   const openToday = todays.filter((t) => !t.done);
+  const finishedToday = todays.filter((t) => t.done);
   const wrapTime = wrapUpTime(data);
   const pastWrapUp = clock.minutes >= minutesOf(wrapTime);
   const leftovers = [...earlier, ...openToday];
   const doneToday = doneOn(data, today);
 
-  // Right after onboarding, the first-task hint comes first; the wrap-up card can wait until it is dismissed.
-  const showWrapUp =
-    pastWrapUp && leftovers.length > 0 && data.wrapUpDismissedOn !== today && !data.showFirstHint;
+  // Shows from the wrap-up minute itself (the clock ticks on the minute) until dismissed for the night.
+  const showWrapUp = pastWrapUp && leftovers.length > 0 && data.wrapUpDismissedOn !== today;
   const wrapUpHidden = pastWrapUp && leftovers.length > 0 && data.wrapUpDismissedOn === today;
   const wrapped = pastWrapUp && leftovers.length === 0 && doneToday > 0;
 
@@ -68,13 +69,22 @@ export function TodayView() {
         {todays.length > 0 && openToday.length === 0 && (
           <EmptyState title="All clear for today.">
             <ButtonLink href={`/add?date=${addDays(today, 1)}`}>Plan tomorrow</ButtonLink>
-            <ButtonLink variant="secondary" href="/upcoming">
-              See upcoming
+            <ButtonLink variant="secondary" href="/glance">
+              See all tasks
             </ButtonLink>
           </EmptyState>
         )}
-        {todays.length > 0 && (
-          <DayTasks tasks={todays} day={today} today={today} highlightId={lastAddedId} label="Today's tasks" />
+        {/* Unfinished tasks can be ranked by dragging; At a Glance shows the same order. */}
+        {openToday.length > 0 && (
+          <ReorderableGroups
+            groups={[{ key: today, title: "Today's tasks", droppable: true, tasks: openToday }]}
+            today={today}
+            highlightId={lastAddedId}
+            showHeadings={false}
+          />
+        )}
+        {finishedToday.length > 0 && (
+          <DayTasks tasks={finishedToday} day={today} today={today} label="Done today" />
         )}
         {todays.length === 0 && earlier.length === 0 && (
           <EmptyState title="Nothing on today's list yet.">

@@ -11,7 +11,7 @@ import { WrapUpEditor } from "./WrapUpSetting";
  * App-level details, in three bands with at most two things each:
  *   ┌ ☾ Your day wraps up at 6 PM · Change ┐   (thin strip, scrolls away)
  *   │ Dayplan                [+ Add task]  │   (pinned)
- *   └ Today      Upcoming      Done        ┘   (pinned)
+ *   └ Today  At a Glance  Calendar  Done   ┘   (pinned)
  * The wrap-up time applies to every day, so it lives up here rather than on a single day.
  * Hidden until onboarding is finished, and while saved data loads, so a new person never sees it flash.
  */
