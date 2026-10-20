@@ -9,7 +9,8 @@ import { farFutureWarning, similarWarning, validateTask, type TaskErrors } from 
  * hard errors block; soft warnings ("too similar", "more than a year away") block once,
  * and the second submit adds it. What the person typed is never cleared on an error.
  */
-export function useTaskDraft() {
+/** `button` is the submit button's label, so soft warnings can say "press Add again". */
+export function useTaskDraft(button = "Add") {
   const [title, setTitle] = useState("");
   const [errors, setErrors] = useState<TaskErrors>({});
   const [warning, setWarning] = useState<{ message: string; match: Task }>();
@@ -39,13 +40,13 @@ export function useTaskDraft() {
     if (found.title || found.date) return { errors: found };
 
     const key = (kind: string) => `${kind}|${title.trim()}|${date}`;
-    const similar = similarWarning(title, date, tasks);
+    const similar = similarWarning(title, date, tasks, { button });
     if (similar && !acknowledged.includes(key("similar"))) {
       setWarning(similar);
       setAcknowledged((a) => [...a, key("similar")]);
       return { errors: {} };
     }
-    const far = farFutureWarning(date, today);
+    const far = farFutureWarning(date, today, button);
     if (far && !acknowledged.includes(key("far"))) {
       setDateWarning(far);
       setAcknowledged((a) => [...a, key("far")]);

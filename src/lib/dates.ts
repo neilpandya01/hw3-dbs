@@ -66,7 +66,7 @@ export function dayName(key: string, today: string): string {
   return formatDay(key);
 }
 
-/** How long a carried-over task has been waiting: "from yesterday", "from Mon", "12 days". */
+/** Where a rolled-over task came from: "from yesterday", "from Mon", or "from Sep 20" once it's a week or more. */
 export function ageLabel(key: string, today: string): string {
   const days = daysBetween(key, today);
   if (days === 1) return "from yesterday";
@@ -74,7 +74,9 @@ export function ageLabel(key: string, today: string): string {
     const weekday = fromKey(key)!.toLocaleDateString("en-US", { weekday: "short" });
     return `from ${weekday}`;
   }
-  return `${days} days`;
+  const far = Math.abs(daysBetween(todayKey(), key)) > 365;
+  const date = fromKey(key)!.toLocaleDateString("en-US", { month: "short", day: "numeric", ...(far ? { year: "numeric" } : {}) });
+  return `from ${date}`;
 }
 
 /** "18:00" → "6 PM", "18:30" → "6:30 PM" */

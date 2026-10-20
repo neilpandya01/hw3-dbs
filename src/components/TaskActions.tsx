@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useLayoutEffect, useState, type ReactNode } from "react";
-import { dayName, formatDay } from "@/lib/dates";
+import { dayName, formatDay, isValidKey } from "@/lib/dates";
 import { moveTasks, type Task } from "@/lib/store";
 import { farFutureWarning } from "@/lib/validate";
 import { Button } from "./Button";
@@ -63,9 +63,10 @@ function MoveToDayForm({ task, today, onClose }: { task: Task; today: string; on
       onSubmit={(e) => {
         e.preventDefault();
         if (!date) return setError("Pick a day for this task.");
+        if (!isValidKey(date)) return setError("That's not a real date. Check the year.");
         if (date < today) return setError("Pick today or a later day.");
         if (date === task.date) return setError(`It's already on ${formatDay(date)}. Pick a different day.`);
-        const far = farFutureWarning(date, today);
+        const far = farFutureWarning(date, today, "Move");
         if (far && confirmedFar !== date) {
           setConfirmedFar(date);
           return setWarning(far);
@@ -82,6 +83,7 @@ function MoveToDayForm({ task, today, onClose }: { task: Task; today: string; on
           id={id}
           type="date"
           min={today}
+            max="9999-12-31"
           value={date}
           autoFocus
           className="min-w-40 flex-1"

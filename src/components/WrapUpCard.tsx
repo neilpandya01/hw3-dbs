@@ -25,12 +25,10 @@ export function WrapUpCard({ leftovers, today }: { leftovers: Task[]; today: str
       <ul className="flex flex-col gap-2" aria-label="Tasks left today">
         {leftovers.map((task) => (
           <li key={task.id} className="flex flex-col gap-1.5 rounded-xl bg-surface px-3 py-2.5">
-            <span className="break-words text-ink">
-              {task.title}
-              {plannedDay(task) < today && (
-                <span className="ml-2 text-sm text-muted">{ageLabel(plannedDay(task), today)}</span>
-              )}
-            </span>
+            <div className="flex flex-col">
+              <span className="break-words text-ink">{task.title}</span>
+              {plannedDay(task) < today && <span className="text-sm text-muted">{ageLabel(plannedDay(task), today)}</span>}
+            </div>
             <TaskActions
               task={task}
               today={today}

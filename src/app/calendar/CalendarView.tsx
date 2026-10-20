@@ -3,12 +3,22 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ButtonLink } from "@/components/Button";
-import { DayTasks } from "@/components/DayTasks";
 import { ReorderableGroups } from "@/components/ReorderableGroups";
 import { TaskList, TaskRow } from "@/components/TaskRow";
 import { EmptyState, ListSkeleton, PageHeader } from "@/components/Page";
 import { useClock } from "@/lib/clock";
-import { addMonths, ageLabel, dayName, formatDay, formatMonth, isValidKey, isValidMonth, monthGrid, monthOf, toKey } from "@/lib/dates";
+import {
+  addMonths,
+  ageLabel,
+  dayName,
+  formatDay,
+  formatMonth,
+  isValidKey,
+  isValidMonth,
+  monthGrid,
+  monthOf,
+  toKey,
+} from "@/lib/dates";
 import { fromEarlier, isCarried, plannedDay, tasksOn, useStore, type Data, type Task } from "@/lib/store";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -75,15 +85,28 @@ function MonthGrid({
 
   return (
     // Compact on purpose: the tasks below are the point, the grid is just for picking a day.
-    <section aria-labelledby="month-title" className="w-full max-w-sm self-center rounded-2xl border border-line bg-surface px-3 py-2">
+    <section
+      aria-labelledby="month-title"
+      className="w-full max-w-sm self-center rounded-2xl border border-line bg-surface px-3 py-2"
+    >
       <div className="flex items-center gap-1">
-        <Link href={`/calendar?month=${addMonths(month, -1)}`} scroll={false} className={arrow} aria-label={`Previous month, ${formatMonth(addMonths(month, -1))}`}>
+        <Link
+          href={`/calendar?month=${addMonths(month, -1)}`}
+          scroll={false}
+          className={arrow}
+          aria-label={`Previous month, ${formatMonth(addMonths(month, -1))}`}
+        >
           ‹
         </Link>
         <h2 id="month-title" className="flex-1 text-center text-sm font-semibold text-ink" aria-live="polite">
           {formatMonth(month)}
         </h2>
-        <Link href={`/calendar?month=${addMonths(month, 1)}`} scroll={false} className={arrow} aria-label={`Next month, ${formatMonth(addMonths(month, 1))}`}>
+        <Link
+          href={`/calendar?month=${addMonths(month, 1)}`}
+          scroll={false}
+          className={arrow}
+          aria-label={`Next month, ${formatMonth(addMonths(month, 1))}`}
+        >
           ›
         </Link>
         <Link
@@ -184,7 +207,7 @@ function PastDay({ data, day, today }: { data: Data; day: string; today: string 
               <TaskRow
                 key={task.id}
                 task={task}
-                meta={task.date !== day ? `planned for ${dayName(task.date, today)}` : undefined}
+                meta={plannedDay(task) !== day ? `planned for ${dayName(plannedDay(task), today)}` : undefined}
               />
             ))}
           </TaskList>
@@ -196,16 +219,27 @@ function PastDay({ data, day, today }: { data: Data; day: string; today: string 
   );
 }
 
-function SelectedDay({ data, day, today, highlightId }: { data: Data; day: string; today: string; highlightId?: string }) {
+function SelectedDay({
+  data,
+  day,
+  today,
+  highlightId,
+}: {
+  data: Data;
+  day: string;
+  today: string;
+  highlightId?: string;
+}) {
   if (day < today) return <PastDay data={data} day={day} today={today} />;
   const tasks = tasksOn(data, day);
   const name = dayName(day, today);
   const open = tasks.filter((t) => !t.done && !isCarried(t, today));
-  const finished = tasks.filter((t) => t.done);
   // On today, rolled-over tasks sit at the top of the list with a "from Sat" note, as on At a Glance.
   const carried = day === today ? fromEarlier(data, today) : [];
-  // Today only: tasks planned for another day but checked off today.
-  const finishedHere = finishedOn(data, day).filter((t) => t.date !== day);
+  // Finished tasks are listed on the day they were finished (as the grid's ○ marker is), so a task
+  // planned for Friday but done early shows on the day it was done, labeled "planned for Fri".
+  const finished = finishedOn(data, day);
+  const hasPlanned = open.length > 0 || carried.length > 0;
 
   return (
     // The selected day's tasks are the main content, so they get a real heading, not a small label.
@@ -213,49 +247,45 @@ function SelectedDay({ data, day, today, highlightId }: { data: Data; day: strin
       <h2 id="selected-day" className="text-lg font-semibold text-ink">
         {name === formatDay(day) ? name : `${name} · ${formatDay(day)}`}
       </h2>
-      {tasks.length > 0 && (
-        <>
-          {/* Same saved order as Today and At a Glance, so dragging here updates them too. */}
-          {(open.length > 0 || carried.length > 0) && (
-            <ReorderableGroups
-              groups={[
-                {
-                  key: day,
-                  title: `Tasks for ${formatDay(day)}`,
-                  droppable: true,
-                  tasks: open,
-                  pinned: carried,
-                  pinnedMeta: (t: Task) => ageLabel(plannedDay(t), today),
-                },
-              ]}
-              today={today}
-              highlightId={highlightId}
-              showHeadings={false}
-            />
-          )}
-          {finished.length > 0 && (
-            <DayTasks tasks={finished} day={day} today={today} label={`Done on ${formatDay(day)}`} />
-          )}
-        </>
+      {/* Same saved order as Today and At a Glance, so dragging here updates them too. */}
+      {hasPlanned && (
+        <ReorderableGroups
+          groups={[
+            {
+              key: day,
+              title: `Tasks for ${formatDay(day)}`,
+              droppable: true,
+              tasks: open,
+              pinned: carried,
+              pinnedMeta: (t: Task) => ageLabel(plannedDay(t), today),
+            },
+          ]}
+          today={today}
+          highlightId={highlightId}
+          showHeadings={false}
+        />
       )}
-      {tasks.length === 0 && finishedHere.length === 0 && (
+
+      {!hasPlanned && finished.length === 0 && (
         <EmptyState title={`Nothing planned for ${formatDay(day)}.`}>
           <ButtonLink href={`/add?date=${day}`}>Add a task for this day</ButtonLink>
         </EmptyState>
       )}
-      {finishedHere.length > 0 && (
+      {finished.length > 0 && (
         <div className="flex flex-col gap-2">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">
-            {tasks.length > 0 ? "Also finished this day" : "Finished this day"}
-          </h3>
-          <TaskList label={`Also finished on ${formatDay(day)}`}>
-            {finishedHere.map((task) => (
-              <TaskRow key={task.id} task={task} meta={`planned for ${dayName(task.date, today)}`} />
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">Finished this day</h3>
+          <TaskList label={`Finished on ${formatDay(day)}`}>
+            {finished.map((task) => (
+              <TaskRow
+                key={task.id}
+                task={task}
+                meta={plannedDay(task) !== day ? `planned for ${dayName(plannedDay(task), today)}` : undefined}
+              />
             ))}
           </TaskList>
         </div>
       )}
-      {tasks.length > 0 && (
+      {(hasPlanned || finished.length > 0) && (
         <ButtonLink variant="secondary" href={`/add?date=${day}`} className="self-start">
           + Add to {formatDay(day)}
         </ButtonLink>

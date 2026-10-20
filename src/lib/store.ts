@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { toKey } from "./dates";
+import { isValidKey, toKey } from "./dates";
 
 // Everything the app remembers lives under one localStorage key.
 // No database, no accounts: it stays on this device.
@@ -55,14 +55,39 @@ const emptyData = (): Data => ({
   tasks: [],
 });
 
-function isData(value: unknown): value is Data {
-  const v = value as Data;
-  return (
-    !!v &&
-    v.version === 1 &&
-    Array.isArray(v.tasks) &&
-    v.tasks.every((t) => typeof t?.id === "string" && typeof t?.title === "string" && typeof t?.date === "string")
-  );
+const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/**
+ * Turn whatever was saved into valid Data, or null if it can't be trusted.
+ * Small gaps (missing settings, an old field) are filled with defaults so nobody loses their list;
+ * anything that would break a page (a task without a real day, say) means the data is unreadable.
+ */
+function normalize(value: unknown): Data | null {
+  const v = value as Partial<Data> | null;
+  if (!v || typeof v !== "object" || v.version !== 1 || !Array.isArray(v.tasks)) return null;
+  const tasks: Task[] = [];
+  for (const raw of v.tasks as Partial<Task>[]) {
+    if (!raw || typeof raw.id !== "string" || typeof raw.title !== "string" || !isValidKey(String(raw.date))) return null;
+    tasks.push({
+      id: raw.id,
+      title: raw.title,
+      date: raw.date!,
+      done: raw.done === true,
+      doneAt: raw.done === true && typeof raw.doneAt === "string" && !isNaN(Date.parse(raw.doneAt)) ? raw.doneAt : undefined,
+      createdAt: typeof raw.createdAt === "string" && !isNaN(Date.parse(raw.createdAt)) ? raw.createdAt : new Date(0).toISOString(),
+      order: typeof raw.order === "number" && isFinite(raw.order) ? raw.order : undefined,
+      carriedFrom: typeof raw.carriedFrom === "string" && isValidKey(raw.carriedFrom) ? raw.carriedFrom : undefined,
+    });
+  }
+  const wrapUpTime = v.settings?.wrapUpTime;
+  return {
+    version: 1,
+    settings: { wrapUpTime: typeof wrapUpTime === "string" && TIME.test(wrapUpTime) ? wrapUpTime : null },
+    wrapUpDismissedOn: typeof v.wrapUpDismissedOn === "string" && isValidKey(v.wrapUpDismissedOn) ? v.wrapUpDismissedOn : null,
+    tasks,
+    onboarded: v.onboarded === true,
+    showFirstHint: v.showFirstHint === true,
+  };
 }
 
 function load(): Snapshot {
@@ -77,8 +102,8 @@ function load(): Snapshot {
   }
   if (raw === null) return { data: emptyData(), storage: "ok" };
   try {
-    const parsed = JSON.parse(raw);
-    if (isData(parsed)) return { data: parsed, storage: "ok" };
+    const data = normalize(JSON.parse(raw));
+    if (data) return { data, storage: "ok" };
   } catch {}
   // Unreadable: keep a copy so nothing is silently lost, then start fresh.
   try {
@@ -147,14 +172,26 @@ function updateTasks(change: (tasks: Task[]) => Task[]) {
 /** Every action returns an undo function for the toast. */
 type Undo = () => void;
 
-function snapshotTasks(): Undo {
-  const before = getSnapshot().data.tasks;
-  return () => updateTasks(() => before);
+/**
+ * Undo for one action: remembers only the tasks it touches (`ids`) and, when undone, puts exactly
+ * those back. Anything added or changed since, here or in another tab, is left alone.
+ */
+function snapshotTasks(ids: string[]): Undo {
+  const before = getSnapshot().data.tasks.filter((t) => ids.includes(t.id));
+  return () => updateTasks((tasks) => [...tasks.filter((t) => !ids.includes(t.id)), ...before]);
+}
+
+/** A moved, edited, or deleted task is no longer "just added": stop highlighting and announcing it. */
+function forgetJustAdded(ids: string[]) {
+  if (snapshot?.lastAddedId && ids.includes(snapshot.lastAddedId)) {
+    snapshot = { ...snapshot, lastAddedId: undefined };
+    emit();
+  }
 }
 
 export function addTask(title: string, date: string): { id: string; undo: Undo } {
-  const undo = snapshotTasks();
   const id = crypto.randomUUID();
+  const undo = snapshotTasks([id]);
   const now = new Date();
   const task: Task = { id, title: title.trim(), date, done: false, createdAt: now.toISOString(), order: now.getTime() };
   updateTasks((tasks) => [...tasks, task]);
@@ -170,13 +207,14 @@ export function addTask(title: string, date: string): { id: string; undo: Undo }
 }
 
 export function toggleTask(id: string): Undo {
-  const undo = snapshotTasks();
+  const undo = snapshotTasks([id]);
   update((d) => ({
     ...d,
     showFirstHint: false,
     tasks: d.tasks.map((t) =>
       t.id === id
-        ? { ...t, done: !t.done, doneAt: t.done ? undefined : new Date().toISOString(), carriedFrom: undefined }
+        ? // carriedFrom is kept, so a finished rolled-over task still remembers the day it was first planned.
+          { ...t, done: !t.done, doneAt: t.done ? undefined : new Date().toISOString() }
         : t,
     ),
   }));
@@ -184,7 +222,8 @@ export function toggleTask(id: string): Undo {
 }
 
 export function moveTasks(ids: string[], date: string): Undo {
-  const undo = snapshotTasks();
+  const undo = snapshotTasks(ids);
+  forgetJustAdded(ids);
   const now = Date.now();
   // Moved tasks go to the end of their new day, keeping their order among themselves.
   updateTasks((tasks) =>
@@ -196,7 +235,8 @@ export function moveTasks(ids: string[], date: string): Undo {
 }
 
 export function updateTask(id: string, patch: { title: string; date: string }): Undo {
-  const undo = snapshotTasks();
+  const undo = snapshotTasks([id]);
+  forgetJustAdded([id]);
   updateTasks((tasks) =>
     tasks.map((t) =>
       t.id !== id
@@ -214,6 +254,7 @@ export function updateTask(id: string, patch: { title: string; date: string }): 
  * then renumber that day 0, 1, 2… so the order is saved exactly as shown.
  */
 export function placeTask(id: string, date: string, index: number) {
+  forgetJustAdded([id]);
   update((d) => {
     const task = d.tasks.find((t) => t.id === id);
     if (!task) return d;
@@ -233,7 +274,8 @@ export function placeTask(id: string, date: string, index: number) {
 }
 
 export function deleteTasks(ids: string[]): Undo {
-  const undo = snapshotTasks();
+  const undo = snapshotTasks(ids);
+  forgetJustAdded(ids);
   updateTasks((tasks) => tasks.filter((t) => !ids.includes(t.id)));
   return undo;
 }

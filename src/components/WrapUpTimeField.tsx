@@ -17,9 +17,17 @@ const EARLY_CUTOFF = 16 * 60;
  * State and rules for "when are you usually done for the day?", shared by onboarding and the header editor.
  * `button` is the label of the submit button, so the early-time warning names the right one.
  */
-export function useWrapUpTime(saved: string | null, button: string) {
-  const [choice, setChoice] = useState<Choice | null>(saved ? (PRESETS.includes(saved) ? saved : "other") : null);
-  const [other, setOther] = useState(saved && !PRESETS.includes(saved) ? saved : "");
+export type WrapUpDraft = { choice: string | null; other: string };
+
+export function useWrapUpTime(
+  saved: string | null,
+  button: string,
+  { draft, onDraft }: { draft?: WrapUpDraft; onDraft?: (d: WrapUpDraft) => void } = {},
+) {
+  const [choice, setChoice] = useState<Choice | null>(
+    draft ? draft.choice : saved ? (PRESETS.includes(saved) ? saved : "other") : null,
+  );
+  const [other, setOther] = useState(draft ? draft.other : saved && !PRESETS.includes(saved) ? saved : "");
   const [error, setError] = useState<string>();
   const [warning, setWarning] = useState<string>();
   const [confirmedEarly, setConfirmedEarly] = useState<string>();
@@ -49,10 +57,12 @@ export function useWrapUpTime(saved: string | null, button: string) {
     validate,
     choose(c: Choice) {
       setChoice(c);
+      onDraft?.({ choice: c, other });
       clearMessages();
     },
     typeOther(t: string) {
       setOther(t);
+      onDraft?.({ choice, other: t });
       clearMessages();
     },
   };
@@ -61,20 +71,25 @@ export function useWrapUpTime(saved: string | null, button: string) {
 export function WrapUpTimeField({
   id,
   legend,
-  hideLegend,
+  labelledBy,
   hint,
   state,
 }: {
   id: string;
-  legend: ReactNode;
-  /** When a visible heading already asks the question, keep the legend for screen readers only. */
-  hideLegend?: boolean;
+  /** The visible question. Leave it out and pass `labelledBy` when a heading already asks it. */
+  legend?: ReactNode;
+  /** The id of a heading that already asks the question, so screen readers hear it once. */
+  labelledBy?: string;
   hint?: ReactNode;
   state: ReturnType<typeof useWrapUpTime>;
 }) {
   return (
-    <fieldset className="flex flex-col gap-1.5" aria-describedby={describedBy(id, { error: state.error, hint })}>
-      <legend className={hideLegend ? "sr-only" : "mb-1.5 font-medium text-ink"}>{legend}</legend>
+    <fieldset
+      className="flex flex-col gap-1.5"
+      aria-labelledby={labelledBy}
+      aria-describedby={describedBy(id, { error: state.error, hint })}
+    >
+      {legend && <legend className="mb-1.5 font-medium text-ink">{legend}</legend>}
       {hint && (
         <p id={`${id}-hint`} className="mb-1 text-sm text-muted">
           {hint}

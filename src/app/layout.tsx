@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { AddedAnnouncer } from "@/components/AddedAnnouncer";
 import { AppHeader } from "@/components/AppHeader";
 import { DayRollover } from "@/components/DayRollover";
+import { OnboardingGate } from "@/components/OnboardingGate";
 import { Nav, NavTabs } from "@/components/Nav";
 import { StorageBanner } from "@/components/StorageBanner";
 import { ToastProvider } from "@/components/Toast";
@@ -48,6 +49,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <StorageBanner />
             <AddedAnnouncer />
             <DayRollover />
+            {/* Reads the URL, so it needs its own Suspense boundary under Cache Components. */}
+            <Suspense fallback={null}>
+              <OnboardingGate />
+            </Suspense>
             {children}
           </main>
           <footer className="mx-auto w-full max-w-xl px-4 pb-6 text-center text-sm text-muted">

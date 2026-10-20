@@ -21,15 +21,16 @@ export function validateTask(
   else if (trimmed.length > MAX_TITLE)
     errors.title = `Shorten this to ${MAX_TITLE} characters or fewer (now ${trimmed.length}).`;
 
-  if (!date || !isValidKey(date)) errors.date = "Pick a day for this task.";
+  if (!date) errors.date = "Pick a day for this task.";
+  else if (!isValidKey(date)) errors.date = "That's not a real date. Check the year.";
   else if (date < today && date !== originalDate) errors.date = "Pick today or a later day.";
   return errors;
 }
 
 /** A date more than a year out is usually a typo in the year (2062 for 2026). Warn once; don't block. */
-export function farFutureWarning(date: string, today: string): string | null {
+export function farFutureWarning(date: string, today: string, button = "Add"): string | null {
   if (!isValidKey(date) || daysBetween(today, date) <= 365) return null;
-  return `${formatLongDay(date)} is more than a year away. Check the year, or press the button again to keep it.`;
+  return `${formatLongDay(date)} is more than a year away. Check the year, or press ${button} again to keep it.`;
 }
 
 // ---- "Too similar" check: a soft warning, never a block ----
@@ -55,11 +56,28 @@ function editDistance(a: string, b: string): number {
   return prev[b.length];
 }
 
+const numbers = (s: string) => (s.match(/\d+/g) ?? []).join(" ");
+
+/**
+ * Close enough to be the same task by mistake. Tolerant on purpose:
+ * - different numbers are different tasks ("Task 1" / "Task 2", "Read ch 3" / "Read ch 4")
+ * - one name inside the other counts ("Laundry" / "Do laundry tonight")
+ * - a typo counts only inside one word, at least 4 letters long, starting with the same letter
+ *   ("Calll mom" / "Call Mom"), so real words that happen to be close don't ("Buy milk" / "Buy silk")
+ */
 function isSimilar(a: string, b: string): boolean {
   if (a === b) return true;
+  if (numbers(a) !== numbers(b)) return false;
   const [short, long] = a.length <= b.length ? [a, b] : [b, a];
   if (short.length >= 4 && long.includes(short)) return true;
-  return short.length >= 5 && editDistance(a, b) <= 2;
+
+  const wa = a.split(" ");
+  const wb = b.split(" ");
+  if (wa.length !== wb.length) return false;
+  const differing = wa.map((w, i) => [w, wb[i]] as const).filter(([x, y]) => x !== y);
+  if (differing.length !== 1) return false;
+  const [x, y] = differing[0];
+  return Math.min(x.length, y.length) >= 4 && x[0] === y[0] && editDistance(x, y) <= (Math.max(x.length, y.length) >= 7 ? 2 : 1);
 }
 
 /** A warning to show under the task field, or null. Only compares unfinished tasks on the same day. */

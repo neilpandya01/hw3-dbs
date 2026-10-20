@@ -1,12 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useRef, useState, type RefObject } from "react";
 import { Button } from "@/components/Button";
 import { DayPicker, resolveDay, type DayChoice } from "@/components/DayPicker";
 import { describedBy, Field, TextInput } from "@/components/Field";
 import { useTaskDraft } from "@/components/useTaskDraft";
-import { addedHref } from "@/lib/dates";
 import { finishOnboarding } from "@/lib/store";
 
 const EXAMPLES = ["Reply to emails", "Do laundry", "Call Mom", "Pay a bill", "Go to the gym"];
@@ -21,8 +19,7 @@ export function FirstTaskStep({
   today: string;
   onBack: () => void;
 }) {
-  const router = useRouter();
-  const draft = useTaskDraft();
+  const draft = useTaskDraft("Add to my list");
   const [day, setDay] = useState<{ choice: DayChoice; picked: string }>({ choice: "today", picked: "" });
   const [skipWarned, setSkipWarned] = useState(false);
   const input = useRef<HTMLInputElement>(null);
@@ -38,8 +35,8 @@ export function FirstTaskStep({
         // A brand-new list has nothing to be similar to, so pass no tasks.
         const result = draft.submit(date, today, []);
         if (result.id) {
+          // Finishing is enough: the welcome page then sends you to the list your task is on.
           finishOnboarding({ addedTask: true });
-          router.push(addedHref(date, today));
         } else if (result.errors.title) {
           input.current?.focus();
         }
@@ -120,7 +117,6 @@ export function FirstTaskStep({
             // Don't silently throw away something they typed: say so once, then skip.
             if (draft.title.trim() && !skipWarned) return setSkipWarned(true);
             finishOnboarding({ addedTask: false });
-            router.push("/");
           }}
         >
           I&rsquo;ll add tasks later

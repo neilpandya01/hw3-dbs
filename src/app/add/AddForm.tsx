@@ -9,7 +9,7 @@ import { describedBy, Field } from "@/components/Field";
 import { ListSkeleton } from "@/components/Page";
 import { useTaskDraft } from "@/components/useTaskDraft";
 import { useClock } from "@/lib/clock";
-import { addDays, addedHref, dayHref, isValidKey } from "@/lib/dates";
+import { addDays, addedHref, dayHref, formatDay, isValidKey } from "@/lib/dates";
 import { useStore, type Task } from "@/lib/store";
 import { MAX_TITLE } from "@/lib/validate";
 
@@ -46,6 +46,8 @@ function Form({ today, preset, tasks }: { today: string; preset: string | null; 
     hint: complete.hint ?? (length > MAX_TITLE - 20 ? `${length} of ${MAX_TITLE} characters` : undefined),
   };
 
+  const pastLink = preset && isValidKey(preset) && preset < today ? preset : null;
+
   return (
     <form
       ref={formRef}
@@ -68,6 +70,11 @@ function Form({ today, preset, tasks }: { today: string; preset: string | null; 
         }
       }}
     >
+      {pastLink && (
+        <p role="status" className="rounded-lg bg-warn-soft px-3 py-2 text-sm text-warn">
+          This link was for {formatDay(pastLink)}, which has passed. Pick a day below.
+        </p>
+      )}
       <Field id="title" label="Task" {...titleMessages}>
         <AutocompleteInput
           ref={titleRef}

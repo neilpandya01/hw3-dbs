@@ -65,6 +65,7 @@ export function DayPicker({
             id={dateId}
             type="date"
             min={today}
+            max="9999-12-31"
             value={picked}
             invalid={!!error}
             aria-describedby={describedBy(id, { error })}

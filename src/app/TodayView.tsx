@@ -1,7 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { Button, ButtonLink } from "@/components/Button";
 import { DayTasks } from "@/components/DayTasks";
 import { FirstHint } from "@/components/FirstHint";
@@ -18,13 +16,8 @@ import { doneOn, fromEarlier, isCarried, isNewUser, reopenWrapUp, tasksOn, useSt
 export function TodayView() {
   const store = useStore();
   const clock = useClock();
-  const router = useRouter();
+  // Someone new is sent to /welcome by OnboardingGate; show the skeleton, not an empty list, meanwhile.
   const isNew = !!store && isNewUser(store.data);
-
-  // Someone with nothing saved starts with the welcome flow, not an empty list.
-  useEffect(() => {
-    if (isNew) router.replace("/welcome");
-  }, [isNew, router]);
 
   if (!store || !clock || isNew) return <ListSkeleton />;
 

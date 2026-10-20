@@ -53,7 +53,7 @@ export function TaskEditor({ task, onClose }: { task: Task; onClose: () => void 
 
     // Soft warnings stop the first save only; pressing Save again keeps the change.
     const similar = similarWarning(title, date, store?.data.tasks ?? [], { excludeId: task.id, button: "Save" });
-    const far = dateChanged && farFutureWarning(date, today);
+    const far = dateChanged && farFutureWarning(date, today, "Save");
     const key = (kind: string) => `${kind}|${title.trim()}|${date}`;
     if (similar && !acknowledged.includes(key("similar"))) {
       setTitleWarning(similar.message);
