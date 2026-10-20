@@ -32,9 +32,9 @@ export function FirstTaskStep({
   return (
     <>
       <header className="flex flex-col gap-1">
-        <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-semibold tracking-tight text-ink outline-none">
+        <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-semibold tracking-tight text-ink outline-none">
           Add your first task
-        </h1>
+        </h2>
         <p className="text-muted">What&rsquo;s one thing you need to do? Tap an example or write your own.</p>
       </header>
 

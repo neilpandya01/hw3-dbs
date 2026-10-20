@@ -45,9 +45,12 @@ function Flow({ initialStep, savedTime, today }: { initialStep: Step; savedTime:
 
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-sm font-medium text-muted" aria-live="polite">
-        Step {step === "wrap-up" ? 1 : 2} of 2
-      </p>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-3xl font-semibold tracking-tight text-ink">Welcome to Dayplan</h1>
+        <p className="text-sm font-medium text-muted" aria-live="polite">
+          Step {step === "wrap-up" ? 1 : 2} of 2
+        </p>
+      </div>
       {step === "wrap-up" ? (
         <WrapUpStep headingRef={heading} savedTime={savedTime} onDone={() => go("first-task")} />
       ) : (

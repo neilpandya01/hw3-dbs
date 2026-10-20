@@ -1,11 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import type { RefObject } from "react";
 import { Button } from "@/components/Button";
 import { useWrapUpTime, WrapUpTimeField } from "@/components/WrapUpTimeField";
-import { formatTime } from "@/lib/dates";
-import { DEFAULT_WRAP_UP, finishOnboarding, setWrapUpTime } from "@/lib/store";
+import { DEFAULT_WRAP_UP, setWrapUpTime } from "@/lib/store";
 
 /** Step 1: say what Dayplan is, then ask the one question it needs. */
 export function WrapUpStep({
@@ -17,7 +15,6 @@ export function WrapUpStep({
   savedTime: string | null;
   onDone: () => void;
 }) {
-  const router = useRouter();
   const wrapUp = useWrapUpTime(savedTime, "Continue");
 
   function submit() {
@@ -30,9 +27,9 @@ export function WrapUpStep({
   return (
     <>
       <header className="flex flex-col gap-3">
-        <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-semibold tracking-tight text-ink outline-none">
+        <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-semibold tracking-tight text-ink outline-none">
           Plan your tasks day by day.
-        </h1>
+        </h2>
         <p className="text-ink">Dayplan is a to-do list where every task belongs to a day.</p>
         <ol className="flex flex-col gap-2 text-ink">
           {[
@@ -62,20 +59,21 @@ export function WrapUpStep({
         <WrapUpTimeField
           id="wrap-up"
           legend="When are you usually done with tasks for the day?"
-          hint="At this time every day, Dayplan helps you wrap up. You can change it later from the top of any page."
+          hint="At this time every day, Dayplan helps you wrap up. You can always change it later."
           state={wrapUp}
         />
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Button type="submit">Continue</Button>
+          {/* Skip only skips this question: it keeps the 6 PM default and still goes on to step 2. */}
           <Button
             variant="ghost"
             onClick={() => {
-              finishOnboarding({ addedTask: false });
-              router.push("/");
+              setWrapUpTime(savedTime ?? DEFAULT_WRAP_UP);
+              onDone();
             }}
           >
-            Skip setup, use {formatTime(DEFAULT_WRAP_UP)}
+            Skip
           </Button>
         </div>
       </form>
