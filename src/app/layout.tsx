@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Suspense } from "react";
 import { AddedAnnouncer } from "@/components/AddedAnnouncer";
 import { AppHeader } from "@/components/AppHeader";
+import { DayRollover } from "@/components/DayRollover";
 import { Nav, NavTabs } from "@/components/Nav";
 import { StorageBanner } from "@/components/StorageBanner";
 import { ToastProvider } from "@/components/Toast";
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <main id="main" tabIndex={-1} className="mx-auto outline-none flex w-full max-w-xl flex-1 flex-col gap-6 px-4 pt-6 pb-24">
             <StorageBanner />
             <AddedAnnouncer />
+            <DayRollover />
             {children}
           </main>
           <footer className="mx-auto w-full max-w-xl px-4 pb-6 text-center text-sm text-muted">

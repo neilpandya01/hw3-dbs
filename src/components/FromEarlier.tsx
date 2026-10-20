@@ -1,7 +1,7 @@
 "use client";
 
 import { ageLabel } from "@/lib/dates";
-import type { Task } from "@/lib/store";
+import { plannedDay, type Task } from "@/lib/store";
 import { Button } from "./Button";
 import { ConfirmButton } from "./ConfirmButton";
 import { TaskActions } from "./TaskActions";
@@ -39,7 +39,7 @@ export function FromEarlier({ tasks, today }: { tasks: Task[]; today: string }) 
           <TaskRow
             key={task.id}
             task={task}
-            meta={ageLabel(task.date, today)}
+            meta={ageLabel(plannedDay(task), today)}
             actions={
               <TaskActions
                 task={task}

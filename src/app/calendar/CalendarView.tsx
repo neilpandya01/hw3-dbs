@@ -8,8 +8,8 @@ import { ReorderableGroups } from "@/components/ReorderableGroups";
 import { TaskList, TaskRow } from "@/components/TaskRow";
 import { EmptyState, ListSkeleton, PageHeader } from "@/components/Page";
 import { useClock } from "@/lib/clock";
-import { addMonths, dayName, formatDay, formatMonth, isValidKey, isValidMonth, monthGrid, monthOf, toKey } from "@/lib/dates";
-import { tasksOn, useStore, type Data } from "@/lib/store";
+import { addMonths, ageLabel, dayName, formatDay, formatMonth, isValidKey, isValidMonth, monthGrid, monthOf, toKey } from "@/lib/dates";
+import { fromEarlier, isCarried, plannedDay, tasksOn, useStore, type Data, type Task } from "@/lib/store";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -59,15 +59,15 @@ function MonthGrid({
   today: string;
   selected: string | null;
 }) {
+  // ● to do: unfinished tasks planned for today or later (past leftovers live under From earlier).
+  // ○ done: tasks checked off on that day.
   const open = new Map<string, number>();
-  const done = new Map<string, Set<string>>();
-  const markDone = (day: string, id: string) => done.set(day, (done.get(day) ?? new Set()).add(id));
+  const done = new Map<string, number>();
   for (const t of data.tasks) {
-    if (!t.done) open.set(t.date, (open.get(t.date) ?? 0) + 1);
-    else {
-      // A finished task counts on the day it was planned for and on the day it was checked off.
-      markDone(t.date, t.id);
-      if (t.doneAt) markDone(toKey(new Date(t.doneAt)), t.id);
+    if (!t.done && t.date >= today) open.set(t.date, (open.get(t.date) ?? 0) + 1);
+    if (t.done && t.doneAt) {
+      const day = toKey(new Date(t.doneAt));
+      done.set(day, (done.get(day) ?? 0) + 1);
     }
   }
   const arrow = "flex size-9 items-center justify-center rounded-full text-lg text-accent hover:bg-accent-soft";
@@ -109,7 +109,7 @@ function MonthGrid({
         {monthGrid(month).map((day, i) => {
           if (!day) return <div key={`pad-${i}`} aria-hidden="true" />;
           const count = open.get(day) ?? 0;
-          const finished = done.get(day)?.size ?? 0;
+          const finished = done.get(day) ?? 0;
           const isToday = day === today;
           const isSelected = day === selected;
           const isPast = day < today;
@@ -156,16 +156,56 @@ function MonthGrid({
   );
 }
 
+/** Tasks checked off on `day`, whatever day they were planned for, in the order they were finished. */
+function finishedOn(data: Data, day: string) {
+  return data.tasks
+    .filter((t) => t.done && t.doneAt && toKey(new Date(t.doneAt)) === day)
+    .sort((a, b) => a.doneAt!.localeCompare(b.doneAt!));
+}
+
+/**
+ * A past day is a record of what got done. Anything planned for it and not finished
+ * already waits under From earlier on Today, so it isn't repeated here.
+ */
+function PastDay({ data, day, today }: { data: Data; day: string; today: string }) {
+  const done = finishedOn(data, day);
+  return (
+    <section aria-labelledby="selected-day" className="flex flex-col gap-3">
+      <h2 id="selected-day" className="text-lg font-semibold text-ink">
+        {dayName(day, today) === formatDay(day) ? formatDay(day) : `${dayName(day, today)} · ${formatDay(day)}`}
+      </h2>
+      {done.length > 0 ? (
+        <>
+          <p className="text-sm text-muted">
+            {done.length === 1 ? "1 task finished" : `${done.length} tasks finished`}
+          </p>
+          <TaskList label={`Finished on ${formatDay(day)}`}>
+            {done.map((task) => (
+              <TaskRow
+                key={task.id}
+                task={task}
+                meta={task.date !== day ? `planned for ${dayName(task.date, today)}` : undefined}
+              />
+            ))}
+          </TaskList>
+        </>
+      ) : (
+        <EmptyState title={`Nothing was finished on ${formatDay(day)}.`} />
+      )}
+    </section>
+  );
+}
+
 function SelectedDay({ data, day, today, highlightId }: { data: Data; day: string; today: string; highlightId?: string }) {
+  if (day < today) return <PastDay data={data} day={day} today={today} />;
   const tasks = tasksOn(data, day);
   const name = dayName(day, today);
-  const isPast = day < today;
-  const open = tasks.filter((t) => !t.done);
+  const open = tasks.filter((t) => !t.done && !isCarried(t, today));
   const finished = tasks.filter((t) => t.done);
-  // Checked off on this day but planned for another day: listed separately so a day's history is complete.
-  const finishedHere = data.tasks
-    .filter((t) => t.done && t.doneAt && t.date !== day && toKey(new Date(t.doneAt)) === day)
-    .sort((a, b) => a.doneAt!.localeCompare(b.doneAt!));
+  // On today, rolled-over tasks show in their own From earlier group, as on the Today page.
+  const carried = day === today ? fromEarlier(data, today) : [];
+  // Today only: tasks planned for another day but checked off today.
+  const finishedHere = finishedOn(data, day).filter((t) => t.date !== day);
 
   return (
     // The selected day's tasks are the main content, so they get a real heading, not a small label.
@@ -173,19 +213,20 @@ function SelectedDay({ data, day, today, highlightId }: { data: Data; day: strin
       <h2 id="selected-day" className="text-lg font-semibold text-ink">
         {name === formatDay(day) ? name : `${name} · ${formatDay(day)}`}
       </h2>
-      {tasks.length > 0 && isPast && (
-        // A past day keeps its "Move to today" buttons; ranking is for days still ahead.
-        <DayTasks tasks={tasks} day={day} today={today} highlightId={highlightId} label={`Tasks for ${formatDay(day)}`} />
-      )}
-      {tasks.length > 0 && !isPast && (
+      {tasks.length > 0 && (
         <>
           {/* Same saved order as Today and At a Glance, so dragging here updates them too. */}
-          {open.length > 0 && (
+          {(open.length > 0 || carried.length > 0) && (
             <ReorderableGroups
-              groups={[{ key: day, title: `Tasks for ${formatDay(day)}`, droppable: true, tasks: open }]}
+              groups={[
+                ...(carried.length
+                  ? [{ key: "earlier", title: "From earlier", droppable: false, tasks: carried, meta: (t: Task) => ageLabel(plannedDay(t), today) }]
+                  : []),
+                { key: day, title: carried.length ? "Planned for today" : `Tasks for ${formatDay(day)}`, droppable: true, tasks: open },
+              ]}
               today={today}
               highlightId={highlightId}
-              showHeadings={false}
+              showHeadings={carried.length > 0}
             />
           )}
           {finished.length > 0 && (
@@ -194,8 +235,8 @@ function SelectedDay({ data, day, today, highlightId }: { data: Data; day: strin
         </>
       )}
       {tasks.length === 0 && finishedHere.length === 0 && (
-        <EmptyState title={isPast ? `Nothing was planned for ${formatDay(day)}.` : `Nothing planned for ${formatDay(day)}.`}>
-          {!isPast && <ButtonLink href={`/add?date=${day}`}>Add a task for this day</ButtonLink>}
+        <EmptyState title={`Nothing planned for ${formatDay(day)}.`}>
+          <ButtonLink href={`/add?date=${day}`}>Add a task for this day</ButtonLink>
         </EmptyState>
       )}
       {finishedHere.length > 0 && (
@@ -210,7 +251,7 @@ function SelectedDay({ data, day, today, highlightId }: { data: Data; day: strin
           </TaskList>
         </div>
       )}
-      {tasks.length > 0 && !isPast && (
+      {tasks.length > 0 && (
         <ButtonLink variant="secondary" href={`/add?date=${day}`} className="self-start">
           + Add to {formatDay(day)}
         </ButtonLink>

@@ -20,6 +20,12 @@ export type Task = {
    * Dragging renumbers a day 0, 1, 2… Missing on older data: falls back to createdAt.
    */
   order?: number;
+  /**
+   * Set when an unfinished task rolls over to the next day on its own: the day it was first planned for.
+   * Such a task sits under "From earlier" until you act on it (move, drag, re-date, finish, or delete),
+   * which clears this. Each new day it rolls forward again.
+   */
+  carriedFrom?: string;
 };
 
 export type Data = {
@@ -169,7 +175,9 @@ export function toggleTask(id: string): Undo {
     ...d,
     showFirstHint: false,
     tasks: d.tasks.map((t) =>
-      t.id === id ? { ...t, done: !t.done, doneAt: t.done ? undefined : new Date().toISOString() } : t,
+      t.id === id
+        ? { ...t, done: !t.done, doneAt: t.done ? undefined : new Date().toISOString(), carriedFrom: undefined }
+        : t,
     ),
   }));
   return undo;
@@ -180,7 +188,9 @@ export function moveTasks(ids: string[], date: string): Undo {
   const now = Date.now();
   // Moved tasks go to the end of their new day, keeping their order among themselves.
   updateTasks((tasks) =>
-    tasks.map((t) => (ids.includes(t.id) ? { ...t, date, order: now + ids.indexOf(t.id) } : t)),
+    tasks.map((t) =>
+      ids.includes(t.id) ? { ...t, date, order: now + ids.indexOf(t.id), carriedFrom: undefined } : t,
+    ),
   );
   return undo;
 }
@@ -191,7 +201,9 @@ export function updateTask(id: string, patch: { title: string; date: string }): 
     tasks.map((t) =>
       t.id !== id
         ? t
-        : { ...t, title: patch.title.trim(), date: patch.date, order: patch.date === t.date ? t.order : Date.now() },
+        : patch.date === t.date
+          ? { ...t, title: patch.title.trim() }
+          : { ...t, title: patch.title.trim(), date: patch.date, order: Date.now(), carriedFrom: undefined },
     ),
   );
   return undo;
@@ -205,12 +217,17 @@ export function placeTask(id: string, date: string, index: number) {
   update((d) => {
     const task = d.tasks.find((t) => t.id === id);
     if (!task) return d;
-    const day = sortForList(d.tasks.filter((t) => t.date === date && !t.done && t.id !== id));
+    // Ranked among the day's own tasks; carried-over ones keep their place under From earlier.
+    const day = sortForList(d.tasks.filter((t) => t.date === date && !t.done && !t.carriedFrom && t.id !== id));
     day.splice(Math.max(0, Math.min(index, day.length)), 0, { ...task, date });
     const position = new Map(day.map((t, i) => [t.id, i]));
     return {
       ...d,
-      tasks: d.tasks.map((t) => (position.has(t.id) ? { ...t, date, order: position.get(t.id)! } : t)),
+      tasks: d.tasks.map((t) =>
+        position.has(t.id)
+          ? { ...t, date, order: position.get(t.id)!, ...(t.id === id ? { carriedFrom: undefined } : {}) }
+          : t,
+      ),
     };
   });
 }
@@ -219,6 +236,21 @@ export function deleteTasks(ids: string[]): Undo {
   const undo = snapshotTasks();
   updateTasks((tasks) => tasks.filter((t) => !ids.includes(t.id)));
   return undo;
+}
+
+/**
+ * Start of a new day: every unfinished task from an earlier day moves onto `today`, remembering
+ * the day it was first planned for. Untouched, it rolls forward again tomorrow.
+ */
+export function rollOver(today: string) {
+  const current = getSnapshot().data;
+  if (!current.tasks.some((t) => !t.done && t.date < today)) return;
+  update((d) => ({
+    ...d,
+    tasks: d.tasks.map((t) =>
+      !t.done && t.date < today ? { ...t, carriedFrom: t.carriedFrom ?? t.date, date: today } : t,
+    ),
+  }));
 }
 
 export function setWrapUpTime(time: string) {
@@ -282,10 +314,21 @@ export function tasksOn(data: Data, day: string): Task[] {
 }
 
 /** Unfinished tasks from any past day: they keep piling up until acted on. */
+/** Rolled over and not yet acted on. (Also catches anything still dated in the past before the rollover runs.) */
+export function isCarried(t: Task, today: string): boolean {
+  return !t.done && (t.date < today || !!t.carriedFrom);
+}
+
+/** The day a carried task was first planned for, for its "from Mon" label. */
+export function plannedDay(t: Task): string {
+  return t.carriedFrom ?? t.date;
+}
+
+/** Unfinished tasks carried over from earlier days, oldest first. They pile up until acted on. */
 export function fromEarlier(data: Data, today: string): Task[] {
   return data.tasks
-    .filter((t) => !t.done && t.date < today)
-    .sort((a, b) => a.date.localeCompare(b.date) || rank(a) - rank(b));
+    .filter((t) => isCarried(t, today))
+    .sort((a, b) => plannedDay(a).localeCompare(plannedDay(b)) || rank(a) - rank(b));
 }
 
 export function doneOn(data: Data, day: string): number {

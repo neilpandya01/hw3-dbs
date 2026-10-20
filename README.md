@@ -51,9 +51,9 @@ flowchart TD
   C -- Yes --> W[Wrap up your day card]
   W -- Keep for tomorrow / Pick a day / Let it go --> X(["Day wrapped. 4 done today."])
   W -- Not now --> N[Hidden for tonight · Wrap up now brings it back]
-  B -- Yes --> E{Unfinished tasks from past days?}
+  B -- Yes --> E{Unfinished tasks left from earlier days?}
   E -- No --> P[Today, with anything planned for today]
-  E -- Yes --> F["Today with 'From earlier · N' on top"]
+  E -- Yes --> F["They move onto today, under 'From earlier · N'"]
   F -- Move to today / Pick a day / Check off / Let it go --> P
 ```
 

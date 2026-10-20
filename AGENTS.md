@@ -20,6 +20,7 @@ A day-by-day personal to-do list. Main flow: I jot a task for a certain day → 
 
 ## Conventions
 - Use the shared components in `src/components` rather than one-off markup: `Button`, `Field`/`TextInput`, `ChoiceChips`, `DayPicker`, `AutocompleteInput`, `TaskRow`, `TaskEditor`, `ReorderableGroups`, `InlineAdd`, `Toast`, `ConfirmButton`, `EmptyState`, `PageHeader`.
+- Unfinished tasks roll forward: `rollOver(today)` (run by `DayRollover` in the layout) moves any unfinished task dated before today onto today and sets `carriedFrom` to its first planned day. `isCarried`/`fromEarlier` put these in the From earlier group. Any real action on a task clears `carriedFrom`: moving, dragging, re-dating, or finishing it. Past calendar days show only what was finished (by `doneAt`).
 - Task order is saved per task (`order` in `src/lib/store.ts`): new and moved tasks go last in their day, never alphabetical. Any list of unfinished tasks that should be rankable uses `ReorderableGroups`, so Today, At a Glance, and Calendar stay in sync.
 - Docs: `README.md` stays short and only covers what the assignment requires: a basic explanation, the live link, the three flow diagrams, and the first-run check. Details go in `flows.md` (steps, states, errors, design decisions) and `ACCESSIBILITY.md`. Update them when behavior changes.
 - Form errors sit under their field and say what to do next ("Enter a task name."). Never clear what the person typed on an error.

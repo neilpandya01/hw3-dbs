@@ -1,7 +1,7 @@
 "use client";
 
 import { addDays, ageLabel } from "@/lib/dates";
-import { dismissWrapUp, type Task } from "@/lib/store";
+import { dismissWrapUp, plannedDay, type Task } from "@/lib/store";
 import { Button } from "./Button";
 import { TaskActions } from "./TaskActions";
 import { useTaskActions } from "./useTaskActions";
@@ -27,7 +27,9 @@ export function WrapUpCard({ leftovers, today }: { leftovers: Task[]; today: str
           <li key={task.id} className="flex flex-col gap-1.5 rounded-xl bg-surface px-3 py-2.5">
             <span className="break-words text-ink">
               {task.title}
-              {task.date < today && <span className="ml-2 text-sm text-muted">{ageLabel(task.date, today)}</span>}
+              {plannedDay(task) < today && (
+                <span className="ml-2 text-sm text-muted">{ageLabel(plannedDay(task), today)}</span>
+              )}
             </span>
             <TaskActions
               task={task}

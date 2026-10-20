@@ -22,7 +22,7 @@ After those come the shared details: [Tab to complete](#tab-to-complete), [order
 | 2 | **It's on that day's list** | `/` for today, `/glance` for any later day | A task for today lands you on **Today**. A task for a later day lands you on **At a Glance**, under its day. Either way the new task turns **light yellow for a few seconds**. If the list is long enough that the task landed off screen, the page scrolls to put it in the middle. Screen readers hear *"Added 'Dentist call' to Thu, Oct 23."* No message is needed, and **Edit → Delete task** removes it if it was a mistake. |
 | 3 | **Check it off** | the same list | Checking the box (or pressing Space on it) strikes the task through and moves it below unfinished tasks. Unchecking reverses it, so there is no message. |
 | 4 | **Wrap up: keep or push** | `/` | After your wrap-up time, a **Wrap up your day** card lists what's left. Each task has **Keep for tomorrow**, **Pick a day**, and **Let it go** buttons. **Move all to tomorrow** handles everything at once, and **Not now** hides the card for tonight. |
-| 5 | **Otherwise, carry forward** | `/` the next day | Unfinished tasks from past days appear in a **From earlier · N** section above today's tasks, each with its age (*"from Mon"*). They keep piling up until you check them off, move them to today, pick a day, or let them go. |
+| 5 | **Otherwise, carry forward** | `/` the next day | At the start of each day, every unfinished task from an earlier day **moves onto today** on its own. It sits in a **From earlier · N** subgroup above today's own tasks, labeled with the day it was first planned (*"from Mon"*). If you ignore it, it moves forward again the next day. Acting on it takes it out of From earlier: check it off, **Move to today** (it joins the end of today's list), drag it into a day, pick another day, or let it go. |
 
 **Shared nav:** `Today · At a Glance · Calendar · Done` plus a **+ Add task** button. Today's heading names the date, e.g. "Today · Sun, Oct 19", and every other page has its own heading.
 
@@ -45,7 +45,8 @@ After those come the shared details: [Tab to complete](#tab-to-complete), [order
 | 4 | **Wrap-up due** | The Wrap up your day card at the top of the list. It appears at the wrap-up minute exactly: the clock ticks on each minute boundary and re-checks when you come back to the tab. |
 | 4 | **Wrap-up dismissed** | No card tonight, and tasks are unchanged. A **Wrap up now** button under Today's heading brings the card back. |
 | 4 | **Day wrapped** | *"Day wrapped. 4 done today."* |
-| 5 | **From earlier present** | A separate section with a count, each task's age, and **Move all to today** / **Clear all** buttons (with Undo). |
+| 5 | **Rolled over** | At the start of a new day, unfinished tasks from earlier days have moved onto today on their own. Nothing is lost and nothing is left behind on a past day. |
+| 5 | **From earlier present** | A separate subgroup above today's own tasks, with a count. Each task is labeled with the day it was first planned (*from Mon*), and there are **Move all to today** and **Clear all** buttons. Moving has Undo, and Clear all asks first. |
 | 5 | **Only "From earlier" tasks** | That section plus quick-add for today. |
 
 ---
@@ -163,7 +164,7 @@ flowchart TD
 | Move a task to another day (Edit, Pick a day, Move all) | It goes to the end of that day. |
 | Drag ⠿ within a day | The card lifts, with a shadow and outline, and moves with your pointer. An accent line shows where it will land, and dropping saves that exact order. You can drag on **Today** (unfinished tasks), **At a Glance** (every day), and the **Calendar**'s selected day, from today onward. All three use the same saved order, so a change in one shows in the others. |
 | Drag ⠿ onto another day | It moves to that day, at the spot shown. Today and Tomorrow are always there as drop targets, even when empty (*"Nothing yet. Drag a task here."*). |
-| Drag from **From earlier** | You can drag it into Today or any later day. Nothing can be dropped into From earlier, because those days are past. |
+| Drag from **From earlier** | You can drag it into Today or any later day, and it becomes a normal task there. Nothing can be dropped *into* From earlier, because that group only holds tasks that rolled over on their own. |
 | Keyboard: focus ⠿, press ↑ / ↓ | It moves one slot. At the top or bottom of a day it crosses into the previous or next day. Focus stays on the handle, and screen readers hear *"Moved 'Gym' to position 2 on Tomorrow."* |
 | **+ Add task to {day}** under a day | It opens a field in place. Adding puts the task at the end of that day, highlighted yellow, and the field closes. **Cancel** or Esc closes it without adding. Errors such as an empty name or a too-similar task show under that field. |
 | Dragging near the top or bottom of the screen | The page scrolls so you can reach other days. |
@@ -179,7 +180,7 @@ I went through every flow looking for mistakes a person could make, then checked
 | Typo in a task name, or a task added to the wrong day | Every task has **Edit**: rename it, change its day, or **Delete task**. Moving and deleting show Undo. Escape or Cancel closes without saving. |
 | Mistyped year (2062 instead of 2026) | A soft warning: **"Thu, Oct 19, 2062 is more than a year away. Check the year, or press the button again to keep it."** It appears in Add, Edit, onboarding, and Pick a day. |
 | Moving a task to the day it's already on | **"It's already on Thu, Oct 23. Pick a different day."** |
-| Editing a From earlier task's name only | It keeps its past day, so there's no false "Pick today or a later day" error. |
+| Editing a From earlier task's name only | It stays in From earlier with its original day, with no date error. |
 | Pressing Enter twice after adding | The second Enter is ignored instead of showing "Enter a task name." |
 | Accidentally checking or unchecking a task | Click the box again. There is no message, because the fix is one click in the same place. |
 | Deleting one task | Undo stays up for 10 seconds instead of 6. It stays open while you hover over or focus it, and it can be dismissed with ✕. |
@@ -201,9 +202,9 @@ flowchart TD
   W -- Keep for tomorrow / Pick a day / Let it go / Move all to tomorrow --> X(["Day wrapped. 4 done today."])
   W -- Not now --> N[Hidden for tonight]
   N -- Wrap up now --> W
-  B -- Yes --> E{Unfinished tasks from past days?}
+  B -- Yes --> E{Unfinished tasks left from earlier days?}
   E -- No --> P[Today, with anything planned for today]
-  E -- Yes --> F["Today with 'From earlier · N' on top"]
+  E -- Yes --> F["They move onto today, under 'From earlier · N'"]
   F -- Move to today / Pick a day / Check off / Let it go --> P
 ```
 
@@ -213,12 +214,12 @@ flowchart TD
 |---|---|
 | Your wrap-up time arrives | The **Wrap up your day** card appears at that exact minute, even if the tab was left open. The clock ticks on each minute and re-checks when you return to the tab. |
 | You skip the wrap-up | **Not now** hides it for the night, and **Wrap up now** brings it back. Ignored leftovers roll into tomorrow. |
-| A new day starts | Today's list resets to the new date. Unfinished tasks from any past day pile up under **From earlier · N**, each with its age (*from Mon*), until you deal with them. Tasks planned for today show up on their own. |
-| You want the bigger picture | **At a Glance** shows every open task by day. **Done** shows what you finished, by day. The **Calendar** goes back and forward through any month. Each day is marked ● if it has tasks to do and ○ if it has finished ones. Picking a past day shows what was planned for it, plus an **Also finished this day** list of tasks you checked off that day but had planned for another day, each labeled *planned for …*. |
+| A new day starts | Unfinished tasks from earlier days move onto the new day by themselves, into **From earlier · N** on Today, labeled with the day they were first planned. This happens when you open the app, and at midnight if it's already open. Tasks planned for today show up in today's own list. |
+| You want the bigger picture | **At a Glance** shows every open task by day. **Done** shows what you finished, by day. The **Calendar** goes back and forward through any month. Today and later days show what's planned (● to do). **Past days are a record of what you finished that day** (○ done), with *planned for …* on anything that had been planned for another day. Unfinished work never stays behind on a past day, because it has already moved forward. |
 | Two tabs open | Changes in one tab show up in the other. |
 
 **What it remembers on this device** (localStorage key `todo:v1`):
-- every task: its name, day, place in the day's order, and whether and when it was finished
+- every task: its name, day, place in the day's order, and whether and when it was finished. A rolled-over task also remembers the day it was first planned for.
 - your wrap-up time
 - that onboarding is done
 - whether you dismissed tonight's wrap-up
@@ -234,7 +235,7 @@ I worked out this flow with my agent in plan mode. Along the way I made these ch
 
 - **Every task belongs to a day,** not just "today" or "someday." I can plan Thursday's dentist call on Monday.
 - **A nightly check-in at a time I choose.** This is the reason to come back each evening.
-- **Leftovers pile up instead of disappearing.** If I skip the wrap-up, unfinished tasks show up in a separate "From earlier" section, and they stay there until I deal with them.
+- **Leftovers move forward instead of disappearing.** If I skip the wrap-up, unfinished tasks move to the next day by themselves, into a separate "From earlier" subgroup labeled with their original day. They keep rolling forward until I deal with them.
 - **A warning when a task is too similar to one already on that day** (e.g. "Calll mom" when "Call Mom" exists). It's a soft warning: pressing Add again keeps both.
 - **A message at the bottom only when a change is hard to reverse.** Moving or deleting a task shows Undo. Adding, checking off, and renaming happen right in front of you, and you can reverse them in place, so they get no message.
 - **A required wrap-up time during onboarding,** asked once, in its own step. You can change it later from the strip at the top of every page.

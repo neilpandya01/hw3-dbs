@@ -6,7 +6,7 @@ import { ListSkeleton, PageHeader } from "@/components/Page";
 import { ReorderableGroups, type TaskGroup } from "@/components/ReorderableGroups";
 import { useClock } from "@/lib/clock";
 import { addDays, ageLabel, dayName, formatDay } from "@/lib/dates";
-import { fromEarlier, sortForList, useStore } from "@/lib/store";
+import { fromEarlier, isCarried, plannedDay, sortForList, useStore, type Task } from "@/lib/store";
 
 /**
  * Every unfinished task in one place, grouped by day: From earlier, Today, Tomorrow, then later days.
@@ -27,7 +27,7 @@ export function GlanceView() {
       key: day,
       title: name === formatDay(day) ? name : `${name} · ${formatDay(day)}`,
       droppable: true,
-      tasks: sortForList(open.filter((t) => t.date === day)),
+      tasks: sortForList(open.filter((t) => t.date === day && !isCarried(t, today))),
       href: day === today ? "/" : `/calendar?day=${day}`,
       footer: <InlineAdd date={day} today={today} tasks={store.data.tasks} />,
     };
@@ -35,7 +35,7 @@ export function GlanceView() {
   const earlier = fromEarlier(store.data, today);
   const groups: TaskGroup[] = [
     ...(earlier.length
-      ? [{ key: "earlier", title: "From earlier", droppable: false, tasks: earlier, meta: (t: { date: string }) => ageLabel(t.date, today) }]
+      ? [{ key: "earlier", title: "From earlier", droppable: false, tasks: earlier, meta: (t: Task) => ageLabel(plannedDay(t), today) }]
       : []),
     dayGroup(today),
     dayGroup(tomorrow),

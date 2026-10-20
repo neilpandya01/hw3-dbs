@@ -12,7 +12,7 @@ import { ReorderableGroups } from "@/components/ReorderableGroups";
 import { WrapUpCard } from "@/components/WrapUpCard";
 import { useClock } from "@/lib/clock";
 import { addDays, formatDay, minutesOf } from "@/lib/dates";
-import { doneOn, fromEarlier, isNewUser, reopenWrapUp, tasksOn, useStore, wrapUpTime } from "@/lib/store";
+import { doneOn, fromEarlier, isCarried, isNewUser, reopenWrapUp, tasksOn, useStore, wrapUpTime } from "@/lib/store";
 
 /** The home page: today's list, quick-add, what's carried over, and the evening wrap-up. */
 export function TodayView() {
@@ -31,7 +31,8 @@ export function TodayView() {
   const { data, lastAddedId } = store;
   const { today } = clock;
   const earlier = fromEarlier(data, today);
-  const todays = tasksOn(data, today);
+  // Carried-over tasks are dated today too, but they live in the From earlier group above.
+  const todays = tasksOn(data, today).filter((t) => !isCarried(t, today));
   const openToday = todays.filter((t) => !t.done);
   const finishedToday = todays.filter((t) => t.done);
   const wrapTime = wrapUpTime(data);
