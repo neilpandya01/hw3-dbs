@@ -60,7 +60,7 @@ After those come the shared details: [Tab to complete](#tab-to-complete), [order
 | 1 | A past date | **"Pick today or a later day."** |
 | 1 | The same unfinished task already on that day | **"'Laundry' is already on Thu, Oct 23. To keep both, press Add again."** This is a soft warning: submitting again adds it. |
 | 1 | A task very similar to an unfinished one on that day (e.g. "call mom" vs. "Call Mom!" or "Calll mom") | **"This looks like 'Call Mom', already on Thu, Oct 23. Change the name, or press Add again to keep both."** This is a soft warning: what you typed is kept, and a second submit adds it. |
-| 2 | Bad date in the address (`/calendar?day=abc`) | The calendar opens on this month with today selected. A month before this one opens this month instead. |
+| 2 | Bad date in the address (`/calendar?day=abc`) | The calendar opens on this month with today selected. |
 | 2–5 | Accidental move, delete, or let go | A message at the bottom with **Undo**. An accidental add or check is reversed in place (Edit → Delete task, or uncheck), so it gets no message. |
 | 4 | Pick a day set to a past date, or the day it's already on | **"Pick today or a later day."** or **"It's already on Thu, Oct 23. Pick a different day."** This shows in the date panel that opens under the task's buttons. The buttons stay together on one row, and the panel opens below them. |
 | any | The browser can't save | Banner: **"This browser isn't saving. Tasks will disappear when you close the tab."** |
@@ -214,7 +214,7 @@ flowchart TD
 | Your wrap-up time arrives | The **Wrap up your day** card appears at that exact minute, even if the tab was left open. The clock ticks on each minute and re-checks when you return to the tab. |
 | You skip the wrap-up | **Not now** hides it for the night, and **Wrap up now** brings it back. Ignored leftovers roll into tomorrow. |
 | A new day starts | Today's list resets to the new date. Unfinished tasks from any past day pile up under **From earlier · N**, each with its age (*from Mon*), until you deal with them. Tasks planned for today show up on their own. |
-| You want the bigger picture | **At a Glance** shows every open task by day. **Calendar** shows the month. **Done** shows what you finished, by day. |
+| You want the bigger picture | **At a Glance** shows every open task by day. **Done** shows what you finished, by day. The **Calendar** goes back and forward through any month. Each day is marked ● if it has tasks to do and ○ if it has finished ones. Picking a past day shows what was planned for it, plus an **Also finished this day** list of tasks you checked off that day but had planned for another day, each labeled *planned for …*. |
 | Two tabs open | Changes in one tab show up in the other. |
 
 **What it remembers on this device** (localStorage key `todo:v1`):

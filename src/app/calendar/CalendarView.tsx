@@ -5,15 +5,17 @@ import { useSearchParams } from "next/navigation";
 import { ButtonLink } from "@/components/Button";
 import { DayTasks } from "@/components/DayTasks";
 import { ReorderableGroups } from "@/components/ReorderableGroups";
+import { TaskList, TaskRow } from "@/components/TaskRow";
 import { EmptyState, ListSkeleton, PageHeader } from "@/components/Page";
 import { useClock } from "@/lib/clock";
-import { addMonths, dayName, formatDay, formatMonth, isValidKey, isValidMonth, monthGrid, monthOf } from "@/lib/dates";
+import { addMonths, dayName, formatDay, formatMonth, isValidKey, isValidMonth, monthGrid, monthOf, toKey } from "@/lib/dates";
 import { tasksOn, useStore, type Data } from "@/lib/store";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 /**
- * A month at a glance, from this month forward, and the tasks of the day you pick.
+ * Any month, past or future, and the tasks of the day you pick: what was planned for it,
+ * and what you finished on it.
  *   /calendar                  → this month, today selected
  *   /calendar?month=2026-12    → December, nothing selected yet
  *   /calendar?day=2026-11-04   → November, the 4th selected
@@ -30,18 +32,13 @@ export function CalendarView() {
   const monthParam = params.get("month");
 
   let selected: string | null = dayParam && isValidKey(dayParam) ? dayParam : null;
-  let month = selected ? monthOf(selected) : monthParam && isValidMonth(monthParam) ? monthParam : thisMonth;
-  // The calendar looks forward: anything before this month opens this month instead.
-  if (month < thisMonth) {
-    month = thisMonth;
-    selected = today;
-  }
+  const month = selected ? monthOf(selected) : monthParam && isValidMonth(monthParam) ? monthParam : thisMonth;
   if (!selected && month === thisMonth) selected = today;
 
   return (
     <>
       <PageHeader title="Calendar" />
-      <MonthGrid data={store.data} month={month} today={today} selected={selected} canGoBack={month > thisMonth} />
+      <MonthGrid data={store.data} month={month} today={today} selected={selected} />
       {selected ? (
         <SelectedDay data={store.data} day={selected} today={today} highlightId={store.lastAddedId} />
       ) : (
@@ -56,16 +53,23 @@ function MonthGrid({
   month,
   today,
   selected,
-  canGoBack,
 }: {
   data: Data;
   month: string;
   today: string;
   selected: string | null;
-  canGoBack: boolean;
 }) {
   const open = new Map<string, number>();
-  for (const t of data.tasks) if (!t.done) open.set(t.date, (open.get(t.date) ?? 0) + 1);
+  const done = new Map<string, Set<string>>();
+  const markDone = (day: string, id: string) => done.set(day, (done.get(day) ?? new Set()).add(id));
+  for (const t of data.tasks) {
+    if (!t.done) open.set(t.date, (open.get(t.date) ?? 0) + 1);
+    else {
+      // A finished task counts on the day it was planned for and on the day it was checked off.
+      markDone(t.date, t.id);
+      if (t.doneAt) markDone(toKey(new Date(t.doneAt)), t.id);
+    }
+  }
   const arrow = "flex size-9 items-center justify-center rounded-full text-lg text-accent hover:bg-accent-soft";
   const thisMonth = monthOf(today);
 
@@ -73,13 +77,9 @@ function MonthGrid({
     // Compact on purpose: the tasks below are the point, the grid is just for picking a day.
     <section aria-labelledby="month-title" className="w-full max-w-sm self-center rounded-2xl border border-line bg-surface px-3 py-2">
       <div className="flex items-center gap-1">
-        {canGoBack ? (
-          <Link href={`/calendar?month=${addMonths(month, -1)}`} scroll={false} className={arrow} aria-label={`Previous month, ${formatMonth(addMonths(month, -1))}`}>
-            ‹
-          </Link>
-        ) : (
-          <span className="size-9" aria-hidden="true" />
-        )}
+        <Link href={`/calendar?month=${addMonths(month, -1)}`} scroll={false} className={arrow} aria-label={`Previous month, ${formatMonth(addMonths(month, -1))}`}>
+          ‹
+        </Link>
         <h2 id="month-title" className="flex-1 text-center text-sm font-semibold text-ink" aria-live="polite">
           {formatMonth(month)}
         </h2>
@@ -109,10 +109,15 @@ function MonthGrid({
         {monthGrid(month).map((day, i) => {
           if (!day) return <div key={`pad-${i}`} aria-hidden="true" />;
           const count = open.get(day) ?? 0;
+          const finished = done.get(day)?.size ?? 0;
           const isToday = day === today;
           const isSelected = day === selected;
           const isPast = day < today;
-          const label = `${formatDay(day)}${isToday ? ", today" : ""}, ${count === 0 ? "no tasks" : count === 1 ? "1 task" : `${count} tasks`}${isSelected ? ", selected" : ""}`;
+          const summary =
+            count === 0 && finished === 0
+              ? "no tasks"
+              : [count && `${count} to do`, finished && `${finished} done`].filter(Boolean).join(", ");
+          const label = `${formatDay(day)}${isToday ? ", today" : ""}, ${summary}${isSelected ? ", selected" : ""}`;
           return (
             <Link
               key={day}
@@ -127,16 +132,26 @@ function MonthGrid({
               }`}
             >
               {Number(day.slice(8))}
-              {count > 0 && (
-                <span
-                  aria-hidden="true"
-                  className={`absolute bottom-1 h-1 w-1 rounded-full ${isSelected ? "bg-bg" : "bg-accent"}`}
-                />
+              {(count > 0 || finished > 0) && (
+                <span aria-hidden="true" className="absolute bottom-0.5 flex gap-0.5">
+                  {count > 0 && <span className={`h-1.5 w-1.5 rounded-full ${isSelected ? "bg-bg" : "bg-accent"}`} />}
+                  {finished > 0 && (
+                    <span className={`h-1.5 w-1.5 rounded-full border ${isSelected ? "border-bg" : "border-muted"}`} />
+                  )}
+                </span>
               )}
             </Link>
           );
         })}
       </div>
+      <p aria-hidden="true" className="mt-1 flex justify-center gap-4 pb-1 text-[11px] text-muted">
+        <span className="inline-flex items-center gap-1">
+          <span className="h-1.5 w-1.5 rounded-full bg-accent" /> to do
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="h-1.5 w-1.5 rounded-full border border-muted" /> done
+        </span>
+      </p>
     </section>
   );
 }
@@ -147,6 +162,10 @@ function SelectedDay({ data, day, today, highlightId }: { data: Data; day: strin
   const isPast = day < today;
   const open = tasks.filter((t) => !t.done);
   const finished = tasks.filter((t) => t.done);
+  // Checked off on this day but planned for another day: listed separately so a day's history is complete.
+  const finishedHere = data.tasks
+    .filter((t) => t.done && t.doneAt && t.date !== day && toKey(new Date(t.doneAt)) === day)
+    .sort((a, b) => a.doneAt!.localeCompare(b.doneAt!));
 
   return (
     // The selected day's tasks are the main content, so they get a real heading, not a small label.
@@ -174,10 +193,22 @@ function SelectedDay({ data, day, today, highlightId }: { data: Data; day: strin
           )}
         </>
       )}
-      {tasks.length === 0 && (
+      {tasks.length === 0 && finishedHere.length === 0 && (
         <EmptyState title={isPast ? `Nothing was planned for ${formatDay(day)}.` : `Nothing planned for ${formatDay(day)}.`}>
           {!isPast && <ButtonLink href={`/add?date=${day}`}>Add a task for this day</ButtonLink>}
         </EmptyState>
+      )}
+      {finishedHere.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">
+            {tasks.length > 0 ? "Also finished this day" : "Finished this day"}
+          </h3>
+          <TaskList label={`Also finished on ${formatDay(day)}`}>
+            {finishedHere.map((task) => (
+              <TaskRow key={task.id} task={task} meta={`planned for ${dayName(task.date, today)}`} />
+            ))}
+          </TaskList>
+        </div>
       )}
       {tasks.length > 0 && !isPast && (
         <ButtonLink variant="secondary" href={`/add?date=${day}`} className="self-start">
