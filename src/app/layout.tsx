@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Suspense } from "react";
+import { AddedAnnouncer } from "@/components/AddedAnnouncer";
 import { AppHeader } from "@/components/AppHeader";
-import { Nav, NavFrame } from "@/components/Nav";
+import { Nav, NavTabs } from "@/components/Nav";
 import { StorageBanner } from "@/components/StorageBanner";
 import { ToastProvider } from "@/components/Toast";
 import "./globals.css";
@@ -30,13 +31,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {/* Nav reads the URL, so it needs its own Suspense boundary under Cache Components. */}
           <AppHeader
             nav={
-              <Suspense fallback={<NavFrame />}>
+              <Suspense fallback={<NavTabs />}>
                 <Nav />
               </Suspense>
             }
           />
           <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 pt-6 pb-24">
             <StorageBanner />
+            <AddedAnnouncer />
             {children}
           </main>
           <footer className="mx-auto w-full max-w-xl px-4 pb-6 text-center text-sm text-muted">

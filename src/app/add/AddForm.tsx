@@ -8,7 +8,7 @@ import { describedBy, Field, TextInput } from "@/components/Field";
 import { ListSkeleton } from "@/components/Page";
 import { useTaskDraft } from "@/components/useTaskDraft";
 import { useClock } from "@/lib/clock";
-import { addDays, dayHref, isValidKey } from "@/lib/dates";
+import { addDays, addedHref, dayHref, isValidKey } from "@/lib/dates";
 import { useStore, type Task } from "@/lib/store";
 import { MAX_TITLE } from "@/lib/validate";
 
@@ -17,8 +17,11 @@ export function AddForm() {
   const store = useStore();
   const clock = useClock();
   const preset = useSearchParams().get("date");
+  // Next keeps a page you left alive (hidden). bfcacheId changes on every fresh visit to /add,
+  // so clicking "+ Add" always gives a clean form, while browser Back still restores a draft.
+  const { bfcacheId } = useRouter();
   if (!store || !clock) return <ListSkeleton />;
-  return <Form key={preset} today={clock.today} preset={preset} tasks={store.data.tasks} />;
+  return <Form key={`${bfcacheId}|${preset}`} today={clock.today} preset={preset} tasks={store.data.tasks} />;
 }
 
 function initialChoice(preset: string | null, today: string): { choice: DayChoice; picked: string } {
@@ -31,7 +34,6 @@ function Form({ today, preset, tasks }: { today: string; preset: string | null; 
   const router = useRouter();
   const draft = useTaskDraft();
   const [{ choice, picked }, setDay] = useState(() => initialChoice(preset, today));
-  const [submitting, setSubmitting] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const date = resolveDay(choice, picked, today);
@@ -49,11 +51,11 @@ function Form({ today, preset, tasks }: { today: string; preset: string | null; 
       className="flex flex-col gap-6"
       onSubmit={(e) => {
         e.preventDefault();
-        if (submitting) return;
+        // A double-click is safe: the first submit clears the field, and an empty
+        // submit right after an add is ignored, so no button needs disabling.
         const result = draft.submit(date, today, tasks);
         if (result.id) {
-          setSubmitting(true);
-          router.push(dayHref(date, today));
+          router.push(addedHref(date, today));
           return;
         }
         // Put the cursor on the first field that needs attention.
@@ -96,7 +98,7 @@ function Form({ today, preset, tasks }: { today: string; preset: string | null; 
       />
 
       <div className="flex flex-col gap-2 sm:flex-row-reverse sm:justify-start">
-        <Button type="submit" disabled={submitting}>
+        <Button type="submit">
           Add
         </Button>
         <ButtonLink variant="secondary" href={preset && isValidKey(preset) ? dayHref(preset, today) : "/"}>

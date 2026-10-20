@@ -1,16 +1,14 @@
 "use client";
 
 import { addDays, ageLabel } from "@/lib/dates";
-import { dismissWrapUp, reopenWrapUp, type Task } from "@/lib/store";
+import { dismissWrapUp, type Task } from "@/lib/store";
 import { Button } from "./Button";
-import { MoveToDay } from "./MoveToDay";
-import { useToast } from "./Toast";
+import { TaskActions } from "./TaskActions";
 import { useTaskActions } from "./useTaskActions";
 
 /** Step 4: after the wrap-up time, decide what happens to what's left. Ignoring it is fine too. */
 export function WrapUpCard({ leftovers, today }: { leftovers: Task[]; today: string }) {
   const actions = useTaskActions();
-  const toast = useToast();
   const tomorrow = addDays(today, 1);
 
   return (
@@ -31,15 +29,20 @@ export function WrapUpCard({ leftovers, today }: { leftovers: Task[]; today: str
               {task.title}
               {task.date < today && <span className="ml-2 text-sm text-muted">{ageLabel(task.date, today)}</span>}
             </span>
-            <div className="flex flex-wrap gap-1">
-              <Button variant="ghost" size="sm" onClick={() => actions.move([task], tomorrow, "Tomorrow")}>
-                Keep for tomorrow
-              </Button>
-              <MoveToDay task={task} today={today} />
-              <Button variant="danger" size="sm" onClick={() => actions.letGo([task])}>
-                Let it go
-              </Button>
-            </div>
+            <TaskActions
+              task={task}
+              today={today}
+              before={
+                <Button variant="ghost" size="sm" onClick={() => actions.move([task], tomorrow, "Tomorrow")}>
+                  Keep for tomorrow
+                </Button>
+              }
+              after={
+                <Button variant="danger" size="sm" onClick={() => actions.letGo([task])}>
+                  Let it go
+                </Button>
+              }
+            />
           </li>
         ))}
       </ul>
@@ -48,10 +51,7 @@ export function WrapUpCard({ leftovers, today }: { leftovers: Task[]; today: str
         <Button onClick={() => actions.move(leftovers, tomorrow, "Tomorrow")}>Move all to tomorrow</Button>
         <Button
           variant="secondary"
-          onClick={() => {
-            dismissWrapUp(today);
-            toast("Wrap-up hidden for tonight. Bring it back with Wrap up now at the top.", reopenWrapUp);
-          }}
+          onClick={() => dismissWrapUp(today)}
         >
           Not now
         </Button>

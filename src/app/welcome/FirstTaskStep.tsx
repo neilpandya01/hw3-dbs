@@ -6,7 +6,7 @@ import { Button } from "@/components/Button";
 import { DayPicker, resolveDay, type DayChoice } from "@/components/DayPicker";
 import { describedBy, Field, TextInput } from "@/components/Field";
 import { useTaskDraft } from "@/components/useTaskDraft";
-import { dayHref } from "@/lib/dates";
+import { addedHref } from "@/lib/dates";
 import { finishOnboarding } from "@/lib/store";
 
 const EXAMPLES = ["Reply to emails", "Do laundry", "Call Mom", "Pay a bill", "Go to the gym"];
@@ -47,7 +47,7 @@ export function FirstTaskStep({
           const result = draft.submit(date, today, []);
           if (result.id) {
             finishOnboarding({ addedTask: true });
-            router.push(dayHref(date, today));
+            router.push(addedHref(date, today));
           } else if (result.errors.title) {
             input.current?.focus();
           }

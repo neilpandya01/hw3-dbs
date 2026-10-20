@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ComponentProps } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ComponentProps } from "react";
 import { Button } from "./Button";
 
 /**
@@ -29,6 +29,9 @@ export function ConfirmButton({
   useEffect(() => {
     if (asking) confirm.current?.focus();
   }, [asking]);
+
+  // Leaving the page hides it rather than unmounting it; don't come back to a half-asked delete.
+  useLayoutEffect(() => () => setAsking(false), []);
 
   function cancel() {
     setAsking(false);

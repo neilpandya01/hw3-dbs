@@ -18,7 +18,7 @@ export function WrapUpStep({
   onDone: () => void;
 }) {
   const router = useRouter();
-  const wrapUp = useWrapUpTime(savedTime);
+  const wrapUp = useWrapUpTime(savedTime, "Continue");
 
   function submit() {
     const time = wrapUp.validate();
@@ -62,7 +62,7 @@ export function WrapUpStep({
         <WrapUpTimeField
           id="wrap-up"
           legend="When are you usually done with tasks for the day?"
-          hint="At this time every day, Dayplan helps you wrap up. You can change it later from the top of Today."
+          hint="At this time every day, Dayplan helps you wrap up. You can change it later from the top of any page."
           state={wrapUp}
         />
 

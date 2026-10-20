@@ -1,10 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { dayName } from "@/lib/dates";
 import { addTask, type Task } from "@/lib/store";
 import { farFutureWarning, similarWarning, validateTask, type TaskErrors } from "@/lib/validate";
-import { useToast } from "./Toast";
 
 /**
  * The add-a-task rules shared by quick-add, the /add form, and onboarding:
@@ -18,7 +16,6 @@ export function useTaskDraft() {
   const [dateWarning, setDateWarning] = useState<string>();
   const [acknowledged, setAcknowledged] = useState<string[]>([]);
   const lastAddedAt = useRef(0);
-  const toast = useToast();
 
   function changeTitle(value: string) {
     setTitle(value);
@@ -55,8 +52,8 @@ export function useTaskDraft() {
       return { errors: {} };
     }
 
-    const { id, undo } = addTask(title, date);
-    toast(`Added "${title.trim()}" to ${dayName(date, today)}`, undo);
+    // No message: the new task appears highlighted on its list, and Edit can remove it.
+    const { id } = addTask(title, date);
     lastAddedAt.current = Date.now();
     setTitle("");
     setWarning(undefined);

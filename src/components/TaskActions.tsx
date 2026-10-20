@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useLayoutEffect, useState, type ReactNode } from "react";
 import { dayName, formatDay } from "@/lib/dates";
 import { moveTasks, type Task } from "@/lib/store";
 import { farFutureWarning } from "@/lib/validate";
@@ -9,9 +9,40 @@ import { FieldError } from "./ChoiceChips";
 import { describedBy, TextInput } from "./Field";
 import { useToast } from "./Toast";
 
-/** "Pick a day" for one task: opens an inline date field with its own error. Escape cancels. */
-export function MoveToDay({ task, today }: { task: Task; today: string }) {
-  const [open, setOpen] = useState(false);
+/**
+ * A task's action buttons in one row, with "Pick a day" in the middle. Picking a day opens its
+ * date field in a panel *under* the row, so the buttons never get split apart.
+ *   [Keep for tomorrow] [Pick a day] [Let it go]
+ *   ┌ Move "Call Mom" to  [ date ] [Move] [Cancel] ┐
+ */
+export function TaskActions({ task, today, before, after }: { task: Task; today: string; before?: ReactNode; after?: ReactNode }) {
+  const [picking, setPicking] = useState(false);
+
+  // Close when the page is hidden by navigation, so it isn't still open on return.
+  useLayoutEffect(() => () => setPicking(false), []);
+
+  return (
+    <div className="flex w-full flex-col gap-2">
+      <div className="flex flex-wrap gap-1">
+        {before}
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-expanded={picking}
+          className={picking ? "bg-accent-soft" : ""}
+          onClick={() => setPicking((p) => !p)}
+        >
+          Pick a day
+        </Button>
+        {after}
+      </div>
+      {picking && <MoveToDayForm task={task} today={today} onClose={() => setPicking(false)} />}
+    </div>
+  );
+}
+
+/** The date field for "Pick a day", with its own errors. Escape or Cancel closes it. */
+function MoveToDayForm({ task, today, onClose }: { task: Task; today: string; onClose: () => void }) {
   const [date, setDate] = useState("");
   const [error, setError] = useState<string>();
   const [warning, setWarning] = useState<string>();
@@ -19,29 +50,14 @@ export function MoveToDay({ task, today }: { task: Task; today: string }) {
   const toast = useToast();
   const id = useId();
 
-  if (!open) {
-    return (
-      <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
-        Pick a day
-      </Button>
-    );
-  }
-
-  function close() {
-    setOpen(false);
-    setDate("");
-    setError(undefined);
-    setWarning(undefined);
-  }
-
   return (
     <form
       noValidate
-      className="flex w-full flex-col gap-1.5"
+      className="flex flex-col gap-1.5 rounded-xl border border-line bg-bg p-3"
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           e.preventDefault();
-          close();
+          onClose();
         }
       }}
       onSubmit={(e) => {
@@ -77,12 +93,12 @@ export function MoveToDay({ task, today }: { task: Task; today: string }) {
             setWarning(undefined);
           }}
         />
-        <Button type="submit" size="md">
-          Move
-        </Button>
-        <Button variant="secondary" onClick={close}>
-          Cancel
-        </Button>
+        <div className="flex gap-2">
+          <Button type="submit">Move</Button>
+          <Button variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+        </div>
       </div>
       <FieldError id={id} error={error} />
       {warning && !error && (

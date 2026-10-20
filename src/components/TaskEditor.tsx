@@ -18,7 +18,7 @@ function initialDay(date: string, today: string): { choice: DayChoice; picked: s
 
 /**
  * Fix a mistake on any task: rename it, move it to another day, or delete it.
- * Escape or Cancel closes without saving; every save or delete has Undo.
+ * Escape or Cancel closes without saving. Moving or deleting offers Undo.
  */
 export function TaskEditor({ task, onClose }: { task: Task; onClose: () => void }) {
   const store = useStore();
@@ -67,7 +67,8 @@ export function TaskEditor({ task, onClose }: { task: Task; onClose: () => void 
     }
 
     const undo = updateTask(task.id, { title, date });
-    toast(dateChanged ? `Moved "${title.trim()}" to ${dayName(date, today)}` : `Saved "${title.trim()}"`, undo);
+    // A rename is visible right where you are. A new day moves the task out of view, so offer Undo.
+    if (dateChanged) toast(`Moved "${title.trim()}" to ${dayName(date, today)}`, undo);
     onClose();
   }
 

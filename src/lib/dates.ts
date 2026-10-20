@@ -89,7 +89,43 @@ export function minutesOf(hhmm: string): number {
   return h * 60 + m;
 }
 
-/** Where a day's list lives: today is the home page. */
+/** Where to land after adding a task: Today for today, Upcoming for any later day. */
+export function addedHref(key: string, today: string): string {
+  return key === today ? "/" : "/upcoming";
+}
+
+/** Where a day's list lives: today is the home page; any other day opens in the calendar. */
 export function dayHref(key: string, today: string): string {
-  return key === today ? "/" : `/day/${key}`;
+  return key === today ? "/" : `/calendar?day=${key}`;
+}
+
+// ---- Months, for the calendar. A month key is "YYYY-MM". ----
+
+export function monthOf(key: string): string {
+  return key.slice(0, 7);
+}
+
+export function isValidMonth(month: string): boolean {
+  return /^\d{4}-\d{2}$/.test(month) && isValidKey(`${month}-01`);
+}
+
+export function addMonths(month: string, n: number): string {
+  const [y, m] = month.split("-").map(Number);
+  return toKey(new Date(y, m - 1 + n, 1)).slice(0, 7);
+}
+
+/** "October 2026" */
+export function formatMonth(month: string): string {
+  return fromKey(`${month}-01`)!.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
+
+/** The day keys of a month laid out Sunday-first, padded with nulls so it fills whole weeks. */
+export function monthGrid(month: string): (string | null)[] {
+  const first = fromKey(`${month}-01`)!;
+  const cells: (string | null)[] = Array(first.getDay()).fill(null);
+  for (let d = new Date(first); d.getMonth() === first.getMonth(); d.setDate(d.getDate() + 1)) {
+    cells.push(toKey(d));
+  }
+  while (cells.length % 7) cells.push(null);
+  return cells;
 }

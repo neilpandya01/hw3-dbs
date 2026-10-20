@@ -1,21 +1,14 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
-import { dayName, todayKey } from "@/lib/dates";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { toggleTask, type Task } from "@/lib/store";
 import { Button } from "./Button";
 import { TaskEditor } from "./TaskEditor";
-import { useToast } from "./Toast";
 
-/** Where an un-checked task shows up again, so the person isn't left wondering. */
-function reopenedMessage(task: Task): string {
-  const today = todayKey();
-  if (task.date < today) return `"${task.title}" is not done. It's back under From earlier on Today.`;
-  if (task.date === today) return `"${task.title}" is not done. It's back on Today.`;
-  return `"${task.title}" is not done. It's back on ${dayName(task.date, today)}.`;
-}
-
-/** One task: a square checkbox labeled by the task name, an Edit button, plus optional meta and actions. */
+/**
+ * One task: a square checkbox labeled by the task name, an Edit button, plus optional meta and actions.
+ * `highlight` marks a task that was just added: light yellow for a few seconds, scrolled to the middle of the screen.
+ */
 export function TaskRow({
   task,
   meta,
@@ -27,10 +20,25 @@ export function TaskRow({
   actions?: ReactNode;
   highlight?: boolean;
 }) {
-  const toast = useToast();
   const [editing, setEditing] = useState(false);
   const editButton = useRef<HTMLButtonElement>(null);
+  const row = useRef<HTMLLIElement>(null);
   const id = `task-${task.id}`;
+
+  // Close the editor when the page is hidden by navigation, so it isn't still open on return.
+  useLayoutEffect(() => () => setEditing(false), []);
+
+  // A just-added task is scrolled to the middle of the screen if any of it is hidden, so it is always seen.
+  useEffect(() => {
+    const el = row.current;
+    if (!highlight || !el) return;
+    const box = el.getBoundingClientRect();
+    const headerBottom = document.querySelector("header")?.getBoundingClientRect().bottom ?? 0;
+    const hidden = box.top < headerBottom || box.bottom > window.innerHeight - 80; // 80px: room for the toast
+    if (!hidden) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+  }, [highlight]);
 
   if (editing) {
     return (
@@ -48,17 +56,18 @@ export function TaskRow({
 
   return (
     <li
-      className={`flex flex-col gap-2 rounded-xl border border-line px-3 py-2.5 ${highlight ? "bg-highlight" : "bg-surface"}`}
+      ref={row}
+      className={`flex flex-col gap-2 rounded-xl border border-line bg-surface px-3 py-2.5 ${
+        highlight ? "just-added" : ""
+      }`}
     >
       <div className="flex items-start gap-3">
         <input
           id={id}
           type="checkbox"
           checked={task.done}
-          onChange={() => {
-            const undo = toggleTask(task.id);
-            toast(task.done ? reopenedMessage(task) : `Done: "${task.title}"`, undo);
-          }}
+          // Checking is undone by unchecking, so no message is needed.
+          onChange={() => toggleTask(task.id)}
           className="mt-0.5 size-5 shrink-0 cursor-pointer accent-[var(--accent)]"
         />
         <div className="flex min-w-0 flex-1 flex-col">

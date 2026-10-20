@@ -17,8 +17,8 @@ Built for Design, Build, Ship (MPCS 51238), Assignment 3: Patterns & Flows.
 ```mermaid
 flowchart LR
   A["Jot a task + pick a day (/add or quick-add)"] -->|error next to field, input kept| A
-  A -->|valid| B["It's on that day's list (toast + Undo)"]
-  B --> C["Check it off (strikethrough + Undo)"]
+  A -->|valid| B["It's on that day's list (highlighted)"]
+  B --> C["Check it off (strikethrough; uncheck to undo)"]
   C --> D{Past my wrap-up time and tasks left?}
   D -- No, all done --> E[All clear: plan tomorrow]
   D -- Yes --> F[Wrap up your day card]
@@ -34,7 +34,7 @@ Someone with nothing saved is sent to `/welcome`. It takes two short steps, and 
 1. **What Dayplan is, plus one question.** The page says *"Plan your tasks day by day,"* explains how it works in three numbered lines, and notes that everything is saved on this device. Then it asks: **"When are you usually done with tasks for the day?"** That answer sets the nightly wrap-up time.
 2. **Add your first task by example.** Tap an example such as *+ Do laundry* or type your own. Put it on **Today**, or, if there's nothing for today, on **Tomorrow** or another day.
 
-The app name and navigation bar stay hidden until onboarding is finished. You then land on that day's list with your task on it, plus a one-time hint about checking it off and the wrap-up. There's no tour and no empty screen.
+The app name and navigation bar stay hidden until onboarding is finished. You then land on Today, or Upcoming for a later day, with your new task highlighted light yellow, plus a one-time hint about checking it off and the wrap-up. There's no tour and no empty screen.
 
 ```mermaid
 flowchart LR
@@ -53,12 +53,12 @@ flowchart LR
 
 ### Main task steps
 
-Each arrow in the sentence is a step, and each step has its own page (route) with shared navigation: **Today · Upcoming · Done**, plus a **+ Add** button.
+Each arrow in the sentence is a step, and each step has its own page (route) with shared navigation: **Today · Upcoming · Calendar · Done**, plus a **+ Add task** button.
 
 | # | Step | Page |
 |---|---|---|
 | 1 | Jot a task for a day | `/add` (or quick-add on `/`) |
-| 2 | It's on that day's list | `/` for today, `/day/[date]` for other days |
+| 2 | It's on that day's list, highlighted light yellow for a few seconds and scrolled into view | `/` for today, `/upcoming` for any later day |
 | 3 | Check it off | the same list |
 | 4 | Wrap up: keep for tomorrow, pick a day, or let it go | `/` after your wrap-up time |
 | 5 | Otherwise, carry forward into **From earlier · N** | `/` the next day |
@@ -71,7 +71,7 @@ I worked out this flow with my agent in plan mode. Along the way I made these ch
 - **A nightly check-in at a time I choose.** This is the reason to come back each evening.
 - **Leftovers pile up instead of disappearing.** If I skip the wrap-up, unfinished tasks show up in a separate "From earlier" section, and they stay there until I deal with them.
 - **A warning when a task is too similar to one already on that day** (e.g. "Calll mom" when "Call Mom" exists). It's a soft warning: pressing Add again keeps both.
-- **Undo instead of confirmation dialogs** for adding, checking off, and deleting tasks.
+- **A message at the bottom only when a change is hard to reverse.** Moving or deleting a task shows Undo. Adding, checking off, and renaming happen right in front of you, and you can reverse them in place, so they get no message.
 - **Not included, to keep it simple:** projects, tags, priorities, and recurring tasks.
 
 The full list of steps, states, and errors is in [flows.md](flows.md).
@@ -80,20 +80,24 @@ The full list of steps, states, and errors is in [flows.md](flows.md).
 
 ## Pages
 
-After onboarding, every page shares the same navigation bar: **Today · Upcoming · Done**, plus **+ Add**. The tab you're on is marked, and the app name always links back to Today.
+After onboarding, every page shares the same header. It has three bands, with no more than two things in each:
+
+- **Top strip:** *☾ Your day wraps up at 6 PM · Change*, centered on a light tint. There's one wrap-up time for all days, so it sits above everything as an app-level detail. **Change** opens a *Daily wrap-up time* panel. The strip scrolls away with the page.
+- **Main bar (pinned):** **Dayplan** on the left, **+ Add task** on the right.
+- **Tabs (pinned):** **Today · Upcoming · Calendar · Done**, with the current one underlined. The tab you're on is marked, and the app name always links back to Today.
 
 | Page | Route | What's on it |
 |---|---|---|
 | Welcome | `/welcome` | The first visit: what Dayplan is, your wrap-up time, and your first task |
-| Today | `/` | **Wrap-up at 6 PM every day · Edit** at the top to change your wrap-up time (one time for all days), quick-add for today, the Wrap up your day card (after your wrap-up time), **From earlier**, and today's list |
+| Today | `/` | Quick-add for today, the Wrap up your day card (after your wrap-up time), **From earlier**, and today's list |
 | Add a task | `/add` | The form: **Task** and **Day** (Today, Tomorrow, or Pick a day), with errors next to each field. `/add?date=2026-10-23` pre-fills the day. |
-| A single day | `/day/[date]` | One day's list, with links to the previous and next day |
+| Calendar | `/calendar` | A month grid, from this month forward with ‹ › arrows. Days with open tasks have a dot. Pick a day to see its tasks below and add more. Clicking a day heading on Upcoming opens that month with the day selected (`/calendar?day=2026-11-04`). Old `/day/...` links redirect here. |
 | Upcoming | `/upcoming` | Everything planned after today, grouped by day |
 | Done | `/done` | Finished tasks grouped by the day you finished them, plus **Clear finished tasks** |
 
-Every task has an **Edit** button for fixing mistakes: rename it, move it to another day, or delete it. Any change can be undone. The full list of mistakes the app catches is in the human-error audit in [flows.md](flows.md#human-error-audit).
+Every task has an **Edit** button for fixing mistakes: rename it, move it to another day, or delete it. Moves and deletes can be undone from the message at the bottom. The full list of mistakes the app catches is in the human-error audit in [flows.md](flows.md#human-error-audit).
 
-Shared components live in [`src/components`](src/components): `Button`, `Field` and `TextInput` (a label, the input, then its error), `ChoiceChips`, `DayPicker`, `WrapUpTimeField` (used in onboarding and the Today editor), `TaskRow`, `Toast` (with Undo), `FirstHint`, `TaskEditor`, `ConfirmButton` (asks before bulk deletes), `Nav`, and `EmptyState`.
+Shared components live in [`src/components`](src/components): `Button`, `Field` and `TextInput` (a label, the input, then its error), `ChoiceChips`, `DayPicker`, `WrapUpTimeField` (used in onboarding and the header editor), `TaskRow`, `Toast` (Undo, for moves and deletes only), `FirstHint`, `TaskEditor`, `ConfirmButton` (asks before bulk deletes), `Nav`, and `EmptyState`.
 
 Data is saved under one localStorage key, `todo:v1` ([`src/lib/store.ts`](src/lib/store.ts)). Days are stored as local `YYYY-MM-DD` dates ([`src/lib/dates.ts`](src/lib/dates.ts)).
 

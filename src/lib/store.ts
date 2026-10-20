@@ -29,7 +29,7 @@ export type Data = {
 
 export type StorageStatus = "ok" | "unavailable" | "full" | "corrupt";
 
-/** lastAddedId is memory-only: it highlights a new task for a few seconds. */
+/** lastAddedId is memory-only: it marks a new task as "just added" for a few seconds. */
 export type Snapshot = { data: Data; storage: StorageStatus; lastAddedId?: string };
 
 const KEY = "todo:v1";
@@ -152,7 +152,7 @@ export function addTask(title: string, date: string): { id: string; undo: Undo }
       snapshot = { ...snapshot, lastAddedId: undefined };
       emit();
     }
-  }, 4000);
+  }, 6000);
   return { id, undo };
 }
 

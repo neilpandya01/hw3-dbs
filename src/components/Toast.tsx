@@ -8,8 +8,10 @@ type ToastMessage = ToastOptions & { id: number; text: string };
 const ToastContext = createContext<(text: string, undoOrOptions?: (() => void) | ToastOptions) => void>(() => {});
 
 /**
+ * Only for changes that can't be reversed with one simple click where you are (moves and deletes).
+ * Checking off, adding, and renaming are visible in place, so they get no message.
  * Show a short confirmation, optionally with Undo:
- * `toast("Added", undo)` or `toast("Deleted 5 tasks", { undo, seconds: 10 })`
+ * `toast("Moved \"Gym\" to Tomorrow", undo)` or `toast("Deleted 5 tasks", { undo, seconds: 10 })`
  */
 export function useToast() {
   return useContext(ToastContext);
@@ -50,9 +52,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 type="button"
                 className="min-h-8 shrink-0 rounded-md px-2 font-semibold underline underline-offset-2"
                 onClick={() => {
+                  // The change reverting on screen is the confirmation; no second message.
                   toast.undo?.();
                   setHeld(false);
-                  setToast({ id: Date.now(), text: "Undone." });
+                  setToast(null);
                 }}
               >
                 Undo

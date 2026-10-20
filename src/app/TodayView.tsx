@@ -9,7 +9,6 @@ import { FromEarlier } from "@/components/FromEarlier";
 import { EmptyState, ListSkeleton, PageHeader, Section } from "@/components/Page";
 import { QuickAdd } from "@/components/QuickAdd";
 import { WrapUpCard } from "@/components/WrapUpCard";
-import { WrapUpSetting } from "@/components/WrapUpSetting";
 import { useClock } from "@/lib/clock";
 import { addDays, formatDay, minutesOf } from "@/lib/dates";
 import { doneOn, fromEarlier, isNewUser, reopenWrapUp, tasksOn, useStore, wrapUpTime } from "@/lib/store";
@@ -50,14 +49,11 @@ export function TodayView() {
         title={`Today · ${formatDay(today)}`}
         subtitle={wrapped ? `Day wrapped. ${doneToday} done today.` : doneToday ? `${doneToday} done today` : undefined}
       >
-        <div className="flex flex-wrap items-center gap-x-2">
-          <WrapUpSetting data={data} />
-          {wrapUpHidden && (
-            <Button variant="ghost" size="sm" onClick={reopenWrapUp}>
-              Wrap up now
-            </Button>
-          )}
-        </div>
+        {wrapUpHidden && (
+          <Button variant="ghost" size="sm" className="self-start" onClick={reopenWrapUp}>
+            Wrap up now
+          </Button>
+        )}
       </PageHeader>
 
       <FirstHint data={data} />

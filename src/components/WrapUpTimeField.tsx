@@ -10,8 +10,14 @@ type Choice = string; // one of PRESETS, or "other"
 
 const options = [...PRESETS.map((t) => ({ value: t, label: formatTime(t) })), { value: "other", label: "Other time" }];
 
-/** State and rules for "when are you usually done for the day?", shared by onboarding and the Today editor. */
-export function useWrapUpTime(saved: string | null) {
+/** Before 4 PM is earlier than most people finish their day, so it gets a one-time check. */
+const EARLY_CUTOFF = 16 * 60;
+
+/**
+ * State and rules for "when are you usually done for the day?", shared by onboarding and the header editor.
+ * `button` is the label of the submit button, so the early-time warning names the right one.
+ */
+export function useWrapUpTime(saved: string | null, button: string) {
   const [choice, setChoice] = useState<Choice | null>(saved ? (PRESETS.includes(saved) ? saved : "other") : null);
   const [other, setOther] = useState(saved && !PRESETS.includes(saved) ? saved : "");
   const [error, setError] = useState<string>();
@@ -23,12 +29,9 @@ export function useWrapUpTime(saved: string | null) {
     if (!choice) return void setError("Pick the time you usually finish for the day.");
     const time = choice === "other" ? other : choice;
     if (!time) return void setError("Enter a time, like 7:00 PM.");
-    // A morning time is probably a mistake, but night-shift people exist: warn once, then accept.
-    if (minutesOf(time) < 12 * 60 && confirmedEarly !== time) {
+    if (minutesOf(time) < EARLY_CUTOFF && confirmedEarly !== time) {
       setConfirmedEarly(time);
-      return void setWarning(
-        `${formatTime(time)} is in the morning. If that's when you finish for the day, press the button again.`,
-      );
+      return void setWarning(`${formatTime(time)} seems too early. Press ${button} again to confirm.`);
     }
     return time;
   }
