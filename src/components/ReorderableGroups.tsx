@@ -9,11 +9,17 @@ import { TaskRow } from "./TaskRow";
 export type TaskGroup = {
   key: string; // a day key, or "earlier"
   title: string;
-  /** Tasks can be dropped here. From earlier is past, so it only gives tasks away. */
+  /** Tasks can be dropped here. */
   droppable: boolean;
   tasks: Task[];
+  /**
+   * Rolled-over tasks shown at the top of the day, before its own tasks. They can be dragged
+   * into place (which makes them normal tasks), but nothing is dropped between them.
+   */
+  pinned?: Task[];
+  pinnedMeta?: (task: Task) => ReactNode;
   href?: string;
-  /** Extra text under each task, e.g. "from Mon" for From earlier. */
+  /** Extra text under each task. */
   meta?: (task: Task) => ReactNode;
   /** Shown under the group's list, e.g. "+ Add task to Tomorrow". */
   footer?: ReactNode;
@@ -42,6 +48,7 @@ export function ReorderableGroups({
   const [announcement, setAnnouncement] = useState("");
   const list = useRef<HTMLDivElement>(null);
   const droppable = groups.filter((g) => g.droppable);
+  const pinnedIds = new Set(groups.flatMap((g) => (g.pinned ?? []).map((t) => t.id)));
 
   /** The drop spot under the pointer: the nearest day group, and the slot between its rows. */
   function targetAt(y: number, draggedId: string): { day: string; index: number } | null {
@@ -53,7 +60,10 @@ export function ReorderableGroups({
       if (!best || distance < best.distance) best = { el, distance };
     }
     if (!best) return null;
-    const rows = [...best.el.querySelectorAll<HTMLElement>("[data-row-id]")].filter((r) => r.dataset.rowId !== draggedId);
+    // Slots are counted among the day's own tasks; pinned rolled-over rows always stay on top.
+    const rows = [...best.el.querySelectorAll<HTMLElement>("[data-row-id]")].filter(
+      (r) => r.dataset.rowId !== draggedId && !pinnedIds.has(r.dataset.rowId!),
+    );
     const index = rows.filter((r) => {
       const b = r.getBoundingClientRect();
       return b.top + b.height / 2 < y;
@@ -68,6 +78,13 @@ export function ReorderableGroups({
 
   /** ↑ ↓ on a handle: one slot at a time, crossing into the next or previous day at the edges. */
   function nudge(task: Task, group: TaskGroup, direction: -1 | 1) {
+    // A pinned rolled-over task: ↓ places it first among the day's own tasks; ↑ moves it to the previous day.
+    if (pinnedIds.has(task.id)) {
+      if (direction === 1) return drop(task, group.key, 0);
+      const before = droppable[droppable.findIndex((g) => g.key === group.key) - 1];
+      if (before) drop(task, before.key, before.tasks.length);
+      return;
+    }
     const position = group.tasks.findIndex((t) => t.id === task.id);
     if (group.droppable) {
       const next = position + direction;
@@ -147,6 +164,16 @@ export function ReorderableGroups({
               </h2>
             )}
             <ul className="flex flex-col gap-2">
+              {(group.pinned ?? []).map((task) => (
+                <TaskRow
+                  key={task.id}
+                  task={task}
+                  handle={handleFor(task, group)}
+                  dragOffset={drag?.id === task.id ? drag.offset : undefined}
+                  highlight={task.id === highlightId}
+                  meta={group.pinnedMeta?.(task)}
+                />
+              ))}
               {group.tasks.map((task) => {
                 const isCarried = drag?.id === task.id;
                 const showIndicator = !isCarried && slot === indicatorAt;
@@ -164,7 +191,7 @@ export function ReorderableGroups({
                 );
               })}
               {indicatorAt === slot && <DropLine />}
-              {group.tasks.length === 0 && group.droppable && (
+              {group.tasks.length === 0 && !group.pinned?.length && group.droppable && (
                 <li className="rounded-xl border border-dashed border-line px-3 py-3 text-center text-sm text-muted">
                   Nothing yet. Drag a task here.
                 </li>

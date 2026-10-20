@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Project: Dayplan (HW3, Design Build Ship)
 
-A day-by-day personal to-do list. Main flow: I jot a task for a certain day → it's on that day's list → I check it off → at my wrap-up time I keep or push what's left; if I don't, it carries into tomorrow under "From earlier." See `flows.md`.
+A day-by-day personal to-do list. Main flow: I jot a task for a certain day → it's on that day's list → I check it off → at my wrap-up time I keep or push what's left; if I don't, it rolls over to tomorrow. See `flows.md`.
 
 ## Constraints
 - Next.js + Tailwind CSS only. Data lives in localStorage (`src/lib/store.ts`, key `todo:v1`). No database, backend, accounts, external APIs, or extra npm packages (no date, state, or UI libraries).
@@ -20,7 +20,7 @@ A day-by-day personal to-do list. Main flow: I jot a task for a certain day → 
 
 ## Conventions
 - Use the shared components in `src/components` rather than one-off markup: `Button`, `Field`/`TextInput`, `ChoiceChips`, `DayPicker`, `AutocompleteInput`, `TaskRow`, `TaskEditor`, `ReorderableGroups`, `InlineAdd`, `Toast`, `ConfirmButton`, `EmptyState`, `PageHeader`.
-- Unfinished tasks roll forward: `rollOver(today)` (run by `DayRollover` in the layout) moves any unfinished task dated before today onto today and sets `carriedFrom` to its first planned day. `isCarried`/`fromEarlier` put these in the From earlier group. Any real action on a task clears `carriedFrom`: moving, dragging, re-dating, or finishing it. Past calendar days show only what was finished (by `doneAt`).
+- Unfinished tasks roll forward: `rollOver(today)` (run by `DayRollover` in the layout) moves any unfinished task dated before today onto today and sets `carriedFrom` to its first planned day. `isCarried`/`fromEarlier` find these. The Today page shows them in a separate yellow "Rolled over" group (`FromEarlier`), while At a Glance and the Calendar pin them at the top of today's list (`pinned` in `ReorderableGroups`). Any real action on a task clears `carriedFrom`: moving, dragging, re-dating, or finishing it. Past calendar days show only what was finished (by `doneAt`).
 - Task order is saved per task (`order` in `src/lib/store.ts`): new and moved tasks go last in their day, never alphabetical. Any list of unfinished tasks that should be rankable uses `ReorderableGroups`, so Today, At a Glance, and Calendar stay in sync.
 - Docs: `README.md` stays short and only covers what the assignment requires: a basic explanation, the live link, the three flow diagrams, and the first-run check. Details go in `flows.md` (steps, states, errors, design decisions) and `ACCESSIBILITY.md`. Update them when behavior changes.
 - Form errors sit under their field and say what to do next ("Enter a task name."). Never clear what the person typed on an error.

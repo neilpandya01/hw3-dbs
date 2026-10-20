@@ -17,7 +17,7 @@ export function FirstHint({ data }: { data: Data }) {
         <p>Check the box when it&rsquo;s done.</p>
         <p>
           At {formatTime(wrapUpTime(data))} each day, Dayplan asks what to do with anything left. If you skip that,
-          leftovers wait for you under &ldquo;From earlier&rdquo;.
+          leftovers roll over to the next day.
         </p>
       </div>
       <Button variant="secondary" size="sm" onClick={dismissFirstHint}>

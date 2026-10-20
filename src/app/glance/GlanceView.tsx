@@ -9,7 +9,7 @@ import { addDays, ageLabel, dayName, formatDay } from "@/lib/dates";
 import { fromEarlier, isCarried, plannedDay, sortForList, useStore, type Task } from "@/lib/store";
 
 /**
- * Every unfinished task in one place, grouped by day: From earlier, Today, Tomorrow, then later days.
+ * Every unfinished task in one place, grouped by day: Today (rolled-over tasks first), Tomorrow, then later days.
  * Ranking here is the same saved order Today uses, so the two pages always agree.
  */
 export function GlanceView() {
@@ -32,15 +32,13 @@ export function GlanceView() {
       footer: <InlineAdd date={day} today={today} tasks={store.data.tasks} />,
     };
   };
-  const earlier = fromEarlier(store.data, today);
-  const groups: TaskGroup[] = [
-    ...(earlier.length
-      ? [{ key: "earlier", title: "From earlier", droppable: false, tasks: earlier, meta: (t: Task) => ageLabel(plannedDay(t), today) }]
-      : []),
-    dayGroup(today),
-    dayGroup(tomorrow),
-    ...later.map(dayGroup),
-  ];
+  // Rolled-over tasks just sit at the top of Today here, each with a "from Sat" note.
+  const todayGroup: TaskGroup = {
+    ...dayGroup(today),
+    pinned: fromEarlier(store.data, today),
+    pinnedMeta: (t: Task) => ageLabel(plannedDay(t), today),
+  };
+  const groups: TaskGroup[] = [todayGroup, dayGroup(tomorrow), ...later.map(dayGroup)];
 
   return (
     <>

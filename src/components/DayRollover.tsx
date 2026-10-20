@@ -7,7 +7,7 @@ import { rollOver, useStore } from "@/lib/store";
 /**
  * Runs the daily rollover: on first load, and again the moment the date changes
  * (the clock ticks on the minute), unfinished tasks from earlier days move onto today
- * under From earlier. Renders nothing.
+ * as rolled over. Renders nothing.
  */
 export function DayRollover() {
   const today = useClock()?.today;

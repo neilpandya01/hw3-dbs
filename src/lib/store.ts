@@ -9,7 +9,7 @@ import { toKey } from "./dates";
 export type Task = {
   id: string;
   title: string;
-  /** The local day it's planned for. Unfinished + in the past → "From earlier". */
+  /** The local day it's planned for. Unfinished tasks from past days roll over onto today. */
   date: string;
   done: boolean;
   doneAt?: string;
@@ -22,7 +22,7 @@ export type Task = {
   order?: number;
   /**
    * Set when an unfinished task rolls over to the next day on its own: the day it was first planned for.
-   * Such a task sits under "From earlier" until you act on it (move, drag, re-date, finish, or delete),
+   * Such a task shows as rolled over until you act on it (move, drag, re-date, finish, or delete),
    * which clears this. Each new day it rolls forward again.
    */
   carriedFrom?: string;

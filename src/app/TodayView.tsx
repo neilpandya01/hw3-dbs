@@ -31,7 +31,7 @@ export function TodayView() {
   const { data, lastAddedId } = store;
   const { today } = clock;
   const earlier = fromEarlier(data, today);
-  // Carried-over tasks are dated today too, but they live in the From earlier group above.
+  // Rolled-over tasks are dated today too, but they live in the Rolled over group above.
   const todays = tasksOn(data, today).filter((t) => !isCarried(t, today));
   const openToday = todays.filter((t) => !t.done);
   const finishedToday = todays.filter((t) => t.done);
@@ -96,7 +96,7 @@ export function TodayView() {
           </EmptyState>
         )}
         {todays.length === 0 && earlier.length > 0 && (
-          <p className="text-sm text-muted">Nothing new for today yet. Move something up from earlier, or add one above.</p>
+          <p className="text-sm text-muted">Nothing new for today yet. Move a rolled-over task into today, or add one above.</p>
         )}
       </Section>
     </>

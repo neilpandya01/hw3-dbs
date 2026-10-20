@@ -1,6 +1,6 @@
 # Dayplan
 
-A personal to-do list where every task belongs to a day. You add tasks to today or any day ahead and check them off. Each evening, at a wrap-up time you choose, Dayplan asks what to do with anything left. Whatever you skip waits under **From earlier** the next day, so nothing gets lost.
+A personal to-do list where every task belongs to a day. You add tasks to today or any day ahead and check them off. Each evening, at a wrap-up time you choose, Dayplan asks what to do with anything left. Whatever you skip rolls over to the next day, so nothing gets lost.
 
 Built for Design, Build, Ship (MPCS 51238), Assignment 3: Patterns & Flows. It's built with Next.js and Tailwind CSS, and everything is saved in the browser with localStorage, with no accounts or database.
 
@@ -24,7 +24,7 @@ flowchart LR
 
 ### Main task
 
-> **I jot a task for a certain day → it's on that day's list → I check it off → at my wrap-up time, I keep or push what's left; if I don't, it carries into tomorrow under "From earlier."**
+> **I jot a task for a certain day → it's on that day's list → I check it off → at my wrap-up time, I keep or push what's left; if I don't, it rolls over to tomorrow.**
 
 ```mermaid
 flowchart LR
@@ -35,13 +35,13 @@ flowchart LR
   D -- No, all done --> E[All clear: plan tomorrow]
   D -- Yes --> F[Wrap up your day card]
   F -- Keep for tomorrow / Pick a day / Let it go --> G([Day wrapped])
-  F -- Not now / ignored --> H["Next day: 'From earlier · N' above today's tasks"]
-  H -- Move to today / Pick a day / Check off / Let it go --> B
+  F -- Not now / ignored --> H["Next day: it rolls over, shown under 'Rolled over · N' on Today"]
+  H -- Move all to today / Check off / Edit --> B
 ```
 
 ### Coming back
 
-> **I come back in the evening → at my wrap-up time Dayplan asks what to do with what's left → I keep it for tomorrow, move it, or let it go → if I skip that, tomorrow it's waiting under "From earlier."**
+> **I come back in the evening → at my wrap-up time Dayplan asks what to do with what's left → I keep it for tomorrow, move it, or let it go → if I skip that, tomorrow it has rolled over to the next day.**
 
 ```mermaid
 flowchart TD
@@ -53,8 +53,8 @@ flowchart TD
   W -- Not now --> N[Hidden for tonight · Wrap up now brings it back]
   B -- Yes --> E{Unfinished tasks left from earlier days?}
   E -- No --> P[Today, with anything planned for today]
-  E -- Yes --> F["They move onto today, under 'From earlier · N'"]
-  F -- Move to today / Pick a day / Check off / Let it go --> P
+  E -- Yes --> F["They roll over onto today: 'Rolled over · N' on Today"]
+  F -- Move all to today / Check off / Edit --> P
 ```
 
 ## First-run check (Step 8)

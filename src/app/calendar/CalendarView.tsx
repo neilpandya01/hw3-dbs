@@ -59,7 +59,7 @@ function MonthGrid({
   today: string;
   selected: string | null;
 }) {
-  // ● to do: unfinished tasks planned for today or later (past leftovers live under From earlier).
+  // ● to do: unfinished tasks planned for today or later (leftovers roll over onto today).
   // ○ done: tasks checked off on that day.
   const open = new Map<string, number>();
   const done = new Map<string, number>();
@@ -165,7 +165,7 @@ function finishedOn(data: Data, day: string) {
 
 /**
  * A past day is a record of what got done. Anything planned for it and not finished
- * already waits under From earlier on Today, so it isn't repeated here.
+ * has already rolled over onto today, so it isn't repeated here.
  */
 function PastDay({ data, day, today }: { data: Data; day: string; today: string }) {
   const done = finishedOn(data, day);
@@ -202,7 +202,7 @@ function SelectedDay({ data, day, today, highlightId }: { data: Data; day: strin
   const name = dayName(day, today);
   const open = tasks.filter((t) => !t.done && !isCarried(t, today));
   const finished = tasks.filter((t) => t.done);
-  // On today, rolled-over tasks show in their own From earlier group, as on the Today page.
+  // On today, rolled-over tasks sit at the top of the list with a "from Sat" note, as on At a Glance.
   const carried = day === today ? fromEarlier(data, today) : [];
   // Today only: tasks planned for another day but checked off today.
   const finishedHere = finishedOn(data, day).filter((t) => t.date !== day);
@@ -219,14 +219,18 @@ function SelectedDay({ data, day, today, highlightId }: { data: Data; day: strin
           {(open.length > 0 || carried.length > 0) && (
             <ReorderableGroups
               groups={[
-                ...(carried.length
-                  ? [{ key: "earlier", title: "From earlier", droppable: false, tasks: carried, meta: (t: Task) => ageLabel(plannedDay(t), today) }]
-                  : []),
-                { key: day, title: carried.length ? "Planned for today" : `Tasks for ${formatDay(day)}`, droppable: true, tasks: open },
+                {
+                  key: day,
+                  title: `Tasks for ${formatDay(day)}`,
+                  droppable: true,
+                  tasks: open,
+                  pinned: carried,
+                  pinnedMeta: (t: Task) => ageLabel(plannedDay(t), today),
+                },
               ]}
               today={today}
               highlightId={highlightId}
-              showHeadings={carried.length > 0}
+              showHeadings={false}
             />
           )}
           {finished.length > 0 && (
