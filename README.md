@@ -36,24 +36,6 @@ flowchart LR
   H -- Move all to today / Check off / Edit --> B
 ```
 
-### Coming back
-
-> **I come back in the evening → at my wrap-up time Dayplan asks what to do with what's left → I keep it for tomorrow, move it, or let it go → if I skip that, tomorrow it has rolled over.**
-
-```mermaid
-flowchart TD
-  A([Come back to Dayplan]) --> B{A new day since my last visit?}
-  B -- No --> C{Past my wrap-up time, with tasks left?}
-  C -- No --> T[Today, exactly as I left it]
-  C -- Yes --> W[Wrap up your day card]
-  W -- Keep for tomorrow / Pick a day / Let it go --> X(["Day wrapped. 4 done today."])
-  W -- Not now --> N[Hidden for tonight · Wrap up now brings it back]
-  B -- Yes --> E{Unfinished tasks left from earlier days?}
-  E -- No --> P[Today, with anything planned for today]
-  E -- Yes --> F["They roll over onto today: 'Rolled over · N' on Today"]
-  F -- Move all to today / Check off / Edit --> P
-```
-
 ## First-run check (Step 8)
 
 _Not run yet._ Once the app is live on Vercel, an agent will use it as a brand-new user, with a goal like "Add three things you need this week," then come back later. Its usability feedback, and what I changed because of it, will go here.
