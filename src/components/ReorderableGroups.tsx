@@ -86,7 +86,7 @@ export function ReorderableGroups({
         type="button"
         data-handle-id={task.id}
         aria-label={`Reorder "${task.title}". Use up and down arrows, or drag.`}
-        className="-ml-1 flex h-6 w-5 shrink-0 cursor-grab touch-none items-center justify-center rounded text-muted hover:text-ink active:cursor-grabbing"
+        className="-ml-1.5 flex size-6 shrink-0 cursor-grab touch-none items-center justify-center rounded text-muted hover:text-ink active:cursor-grabbing"
         onPointerDown={(e) => {
           if (e.button !== 0) return;
           e.preventDefault();

@@ -28,7 +28,7 @@ export function ChoiceChips<T extends string>({
             onChange={() => onChange(o.value)}
             className="peer sr-only"
           />
-          <span className="inline-flex min-h-9 cursor-pointer items-center gap-1 rounded-full border border-line bg-surface px-3.5 text-sm text-muted hover:border-accent hover:text-ink peer-checked:border-accent peer-checked:bg-accent-soft peer-checked:font-semibold peer-checked:text-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent [&>.check]:hidden peer-checked:[&>.check]:inline">
+          <span className="inline-flex min-h-9 cursor-pointer items-center gap-1 rounded-full border border-control bg-surface px-3.5 text-sm text-muted hover:border-accent hover:text-ink peer-checked:border-accent peer-checked:bg-accent-soft peer-checked:font-semibold peer-checked:text-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent [&>.check]:hidden peer-checked:[&>.check]:inline">
             <span aria-hidden="true" className="check">
               ✓
             </span>

@@ -48,7 +48,7 @@ export function TextInput({ invalid, className = "", ...props }: ComponentProps<
     <input
       aria-invalid={invalid || undefined}
       className={`min-h-11 rounded-lg border bg-surface px-3 text-base text-ink placeholder:text-muted ${
-        invalid ? "border-danger" : "border-line"
+        invalid ? "border-danger" : "border-control"
       } ${className}`}
       {...props}
     />

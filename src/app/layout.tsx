@@ -28,6 +28,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
         <ToastProvider>
+          {/* First thing a keyboard user reaches: jump past the header and tabs to the page itself. */}
+          <a
+            href="#main"
+            className="sr-only z-30 rounded-lg bg-ink px-4 py-2 text-bg focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+          >
+            Skip to main content
+          </a>
           {/* Nav reads the URL, so it needs its own Suspense boundary under Cache Components. */}
           <AppHeader
             nav={
@@ -36,7 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </Suspense>
             }
           />
-          <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 pt-6 pb-24">
+          <main id="main" tabIndex={-1} className="mx-auto outline-none flex w-full max-w-xl flex-1 flex-col gap-6 px-4 pt-6 pb-24">
             <StorageBanner />
             <AddedAnnouncer />
             {children}
